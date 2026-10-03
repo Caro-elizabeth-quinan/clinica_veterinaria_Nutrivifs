@@ -1,0 +1,321 @@
+/* =========================================================
+   LAYOUT
+   Cabecera, navegación, banner superior de las páginas y pie de página.
+   En React: componentes <Header />, <PageBanner /> y <Footer />.
+   ========================================================= */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #ffffff;
+  border-bottom: 1px solid #dce8df;
+}
+
+.header-content {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.brand {
+  color: #176b58;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+nav a,
+.profile-link {
+  text-decoration: none;
+  font-weight: 700;
+}
+
+nav a:hover,
+nav a[aria-current="page"],
+.profile-link:hover {
+  color: #d26945;
+}
+
+.profile-link {
+  color: #176b58;
+}
+
+.carrito-compras {
+  color: #176b58;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cart-counter {
+  display: inline-grid;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.2rem;
+  padding: 0 0.25rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #d26945;
+  color: #ffffff;
+  font-size: 0.75rem;
+}
+
+.site-footer {
+  background: #183b39;
+  color: #f4f8f4;
+  padding: 2.5rem 0;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 2rem;
+}
+
+.site-footer h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #f5c58b;
+}
+
+.site-footer p {
+  margin: 0.35rem 0;
+}
+
+.site-footer ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  line-height: 1.8;
+}
+
+.site-footer a {
+  color: #ffffff;
+}
+
+@media (max-width: 800px) {
+  .header-content {
+    flex-wrap: wrap;
+    padding: 1rem 0;
+    gap: 1rem;
+  }
+
+  nav {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-footer {
+    padding: 2rem 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-content {
+    align-items: flex-start;
+  }
+
+  nav {
+    justify-content: flex-start;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.header-actions,
+.session-links {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  white-space: nowrap;
+}
+
+.session-name {
+  color: #183b39;
+  font-weight: 700;
+}
+
+.logout-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d26945;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  text-decoration: underline;
+}
+
+.carrito-compras {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #176b58;
+  border-radius: 999px;
+}
+
+.carrito-compras:hover {
+  background: #176b58;
+  color: #ffffff;
+}
+
+@media (max-width: 1000px) {
+  .header-content {
+    flex-wrap: wrap;
+    padding: 0.8rem 0;
+    gap: 0.8rem 1.5rem;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .site-header nav {
+    order: 3;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.2rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-actions,
+  .session-links {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.9rem;
+    white-space: normal;
+  }
+
+  .header-actions {
+    margin-left: 0;
+  }
+}
+
+/* Banner superior con fotografía (consultas, productos, contacto, agendar). */
+
+.page-banner {
+  position: relative;
+  padding: 4rem 0;
+  background-color: #12372f;
+  background-position: center 30%;
+  background-size: cover;
+  color: #ffffff;
+}
+
+.page-banner > .container {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.page-banner--consultas {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(14, 50, 42, 0.94) 0%,
+      rgba(14, 50, 42, 0.72) 45%,
+      rgba(14, 50, 42, 0.2) 100%
+    ),
+    url("../img/consulta-general.jpg");
+}
+
+.page-banner--productos {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(14, 50, 42, 0.94) 0%,
+      rgba(14, 50, 42, 0.72) 45%,
+      rgba(14, 50, 42, 0.15) 100%
+    ),
+    url("../img/perro-gato.jpg");
+  background-position: center 40%;
+}
+
+.page-banner--contacto {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(14, 50, 42, 0.94) 0%,
+      rgba(14, 50, 42, 0.72) 45%,
+      rgba(14, 50, 42, 0.2) 100%
+    ),
+    url("../img/señales.jpg");
+  background-position: center 55%;
+}
+
+.page-banner--agendar {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(14, 50, 42, 0.94) 0%,
+      rgba(14, 50, 42, 0.72) 45%,
+      rgba(14, 50, 42, 0.2) 100%
+    ),
+    url("../img/procedimiento.jpg");
+}
+
+.page-banner-kicker {
+  display: inline-block;
+  margin-bottom: 0.7rem;
+  color: #a9dd6c;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.page-banner h1 {
+  margin: 0 0 0.8rem;
+  color: #ffffff;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.page-banner p {
+  max-width: 520px;
+  margin: 0;
+  color: #e6f1ea;
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+  .page-banner {
+    padding: 2.75rem 0;
+  }
+}

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carrito de compras | Clínica NutriDifs</title>
+    <link rel="stylesheet" href="../CSS/app.css" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <a class="brand" href="index.html">
+          <img class="brand-logo" src="../img/logo.svg" alt="" />
+          Clínica NutriDifs
+        </a>
+
+        <nav aria-label="Navegación principal">
+          <a href="index.html">Inicio</a>
+          <a href="consultas.html">Consultas</a>
+          <a href="productos.html">Productos</a>
+          <a href="blog.html">Blog</a>
+          <a href="contactanos.html">Contáctanos</a>
+          <a href="quienes-somos.html">Quiénes somos</a>
+        </nav>
+
+        <div class="header-actions">
+          <span class="session-links" data-session-links>
+            <a class="profile-link" href="login.html">Iniciar sesión</a>
+            <a class="profile-link" href="registro.html">Registrarse</a>
+          </span>
+          <a class="carrito-compras" href="carrito.html">Carrito</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="container cart-page" aria-labelledby="cart-page-title">
+        <h1 id="cart-page-title">Mi carrito de compras</h1>
+
+        <div class="cart-page-layout">
+          <div>
+            <div class="cart-empty-message" data-cart-empty hidden>
+              <img
+                src="../img/ejercicio.jpg"
+                alt="Perro jugando al aire libre"
+              />
+              <p>Tu carrito está vacío.</p>
+              <a class="btn-primary" href="productos.html">Ver productos</a>
+            </div>
+            <div class="cart-page-items" data-cart-items></div>
+          </div>
+
+          <aside
+            class="cart-summary"
+            data-cart-summary
+            aria-label="Resumen de la compra"
+          >
+            <h2>Resumen</h2>
+            <dl>
+              <div>
+                <dt>Subtotal</dt>
+                <dd data-cart-subtotal>$0</dd>
+              </div>
+              <div data-cart-discount-row hidden>
+                <dt>Descuento</dt>
+                <dd data-cart-discount>$0</dd>
+              </div>
+              <div class="cart-summary-total">
+                <dt>Total</dt>
+                <dd data-cart-total>$0</dd>
+              </div>
+            </dl>
+
+            <form class="cart-coupon" data-coupon-form novalidate>
+              <label for="cupon">Ingresa el cupón de descuento</label>
+              <div class="cart-coupon-row">
+                <input
+                  type="text"
+                  id="cupon"
+                  name="cupon"
+                  maxlength="20"
+                  placeholder="NUTRI10"
+                  data-coupon-input
+                />
+                <button type="submit" class="btn-secondary">Aplicar</button>
+              </div>
+              <p
+                class="cart-form-message"
+                data-coupon-message
+                role="status"
+              ></p>
+            </form>
+
+            <button type="button" class="btn-primary" data-pay-cart>
+              Pagar
+            </button>
+            <button type="button" class="cart-clear-button" data-clear-cart>
+              Vaciar carrito
+            </button>
+            <a class="cart-continue" href="productos.html">Seguir comprando</a>
+          </aside>
+        </div>
+
+        <div
+          class="cart-notice"
+          data-cart-notice
+          role="alertdialog"
+          aria-live="assertive"
+          hidden
+        >
+          <div class="cart-notice-box">
+            <p data-cart-notice-message></p>
+            <div class="cart-notice-actions">
+              <button
+                type="button"
+                class="btn-primary"
+                data-notice-confirm
+                hidden
+              >
+                Continuar
+              </button>
+              <button
+                type="button"
+                class="btn-secondary"
+                data-notice-cancel
+                hidden
+              >
+                Cancelar
+              </button>
+              <button type="button" class="btn-secondary" data-notice-close>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div>
+          <h2>Clínica NutriDifs</h2>
+          <p>Cuidamos la salud y bienestar de tus mascotas.</p>
+          <p>Teléfono: +56 9 4567 8910</p>
+          <p>
+            <a href="mailto:contacto@nutridifs.cl">contacto@nutridifs.cl</a>
+          </p>
+        </div>
+        <div>
+          <h2>Integrantes</h2>
+          <ul>
+            <li>Carolina Quinan</li>
+            <li>Liza Micele</li>
+          </ul>
+        </div>
+        <div>
+          <h2>Sección</h2>
+          <p>DSY1104 – 2026</p>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <p>© 2026 Clínica NutriDifs. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <script src="../JS/datos.js" defer></script>
+    <script src="../JS/app.js" defer></script>
+    <script src="../JS/auth.js" defer></script>
+    <script src="../JS/tienda.js" defer></script>
+    <script src="../JS/agenda.js" defer></script>
+  </body>
+</html>

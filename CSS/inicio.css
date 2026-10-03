@@ -1,0 +1,681 @@
+/* =========================================================
+   INICIO
+   Página de inicio: hero, beneficios, productos destacados, banner, atención a domicilio y equipo.
+   ========================================================= */
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.7rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.benefit-icon {
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  font-size: 1.7rem;
+  flex-shrink: 0;
+}
+
+.home-users {
+  background: #dfeae2;
+  padding: 4rem 0 4.5rem;
+}
+
+.home-users-heading {
+  margin: 0 auto 2.5rem;
+  max-width: 980px;
+  text-align: center;
+}
+
+.home-users-heading span {
+  display: block;
+  margin-bottom: 1rem;
+  color: #d9674f;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-users-heading h2 {
+  margin: 0;
+  color: #183d3a;
+  font-size: clamp(2.4rem, 4vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.home-users-heading p {
+  margin: 1.2rem auto 0;
+  max-width: 640px;
+  color: #355a55;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.home-users-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.team-card {
+  background: #ffffff;
+  border: 1px solid rgba(24, 59, 57, 0.12);
+  border-radius: 18px;
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+  box-shadow: none;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 1.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #1a6d5d;
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.team-card h3 {
+  margin: 0 0 0.5rem;
+  color: #183d3a;
+  font-size: clamp(1.7rem, 2vw, 2.2rem);
+  line-height: 1.2;
+}
+
+.team-card .role {
+  margin: 0 0 0.4rem;
+  color: #d26945;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.team-card .email {
+  margin: 0;
+  color: #355a55;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.home-care {
+  padding: 80px 0;
+  background: #f7faf8;
+}
+
+.home-care-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
+}
+
+.home-care-image {
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.home-care-image img {
+  display: block;
+  width: 100%;
+  height: 430px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.home-care-image img:hover {
+  transform: scale(1.03);
+}
+
+.home-care-text {
+  max-width: 560px;
+}
+
+.home-care-label {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #3b8f68;
+}
+
+.home-care-text h2 {
+  margin: 0 0 20px;
+  font-size: 2.4rem;
+  line-height: 1.2;
+}
+
+.home-care-text p {
+  margin-bottom: 25px;
+  color: #5f6b65;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.home-care-text .btn-primary {
+  display: inline-block;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .home-care {
+    padding: 55px 0;
+  }
+
+  .home-care-content {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+
+  .home-care-image {
+    order: 1;
+  }
+
+  .home-care-text {
+    order: 2;
+  }
+
+  .home-care-image img {
+    height: 300px;
+  }
+
+  .home-care-text h2 {
+    font-size: 2rem;
+  }
+}
+
+.featured-products {
+  padding: 4rem 0;
+  background: #ffffff;
+}
+
+.products-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.products-heading > div > span {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #d7674f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.products-heading h2 {
+  margin: 0;
+  color: #183d3a;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.1;
+}
+
+.products-heading > a {
+  color: #176b58;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.products-heading > a:hover {
+  color: #d26945;
+}
+
+.featured-products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.featured-product-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(24, 59, 57, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.featured-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 22px rgba(24, 59, 57, 0.1);
+}
+
+.featured-product-info {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.featured-product-info > span {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #d26945;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.featured-product-info h3 {
+  margin: 0 0 0.7rem;
+  color: #183d3a;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.featured-product-info strong {
+  display: block;
+  margin: 0.3rem 0 1rem;
+  color: #183d3a;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.featured-product-info a {
+  margin-top: auto;
+  color: #176b58;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.featured-product-info a:hover {
+  color: #d26945;
+  text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+  .featured-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1000px) {
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .features-grid,
+  .home-users-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-care-content {
+    grid-template-columns: 1fr;
+  }
+
+  .featured-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .features-grid,
+  .home-users-grid,
+  .featured-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-buttons {
+    flex-direction: column;
+  }
+
+  .features-grid,
+  .home-users-grid,
+  .featured-products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .products-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .home-care {
+    padding: 3rem 0;
+  }
+
+  .home-care-image img {
+    min-height: 240px;
+  }
+
+  .home-care-text {
+    padding: 0;
+  }
+
+  .home-care-text h2 {
+    font-size: 2.2rem;
+  }
+
+  .featured-product-card > img {
+    height: 200px;
+  }
+}
+
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #12372f;
+  color: #ffffff;
+}
+
+/* La foto se refleja para que las mascotas queden a la derecha y el
+     texto se lea sobre la zona oscura de la izquierda. */
+
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("../img/perro-gato.jpg") center 35% / cover no-repeat;
+  transform: scaleX(-1);
+}
+
+.home-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(0deg, rgba(14, 50, 42, 0.92) 0%, rgba(14, 50, 42, 0) 38%),
+    linear-gradient(
+      90deg,
+      rgba(14, 50, 42, 0.94) 0%,
+      rgba(14, 50, 42, 0.78) 34%,
+      rgba(14, 50, 42, 0.12) 62%,
+      rgba(14, 50, 42, 0) 100%
+    );
+}
+
+.home-hero-content {
+  display: flex;
+  align-items: center;
+  min-height: 430px;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 3.5rem 0 2.5rem;
+}
+
+.home-hero-text {
+  max-width: 470px;
+}
+
+.home-hero-kicker {
+  display: block;
+  margin-bottom: 0.9rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.home-hero h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2.5rem, 5.2vw, 4.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.home-hero h1 em {
+  display: block;
+  color: #a9dd6c;
+  font-style: normal;
+}
+
+.home-hero p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.home-hero .btn-primary {
+  background: #2a9d73;
+  border-color: #2a9d73;
+}
+
+.home-hero .btn-primary:hover {
+  background: #23875f;
+  border-color: #23875f;
+}
+
+.home-hero .btn-secondary {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.home-hero .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.home-hero-features {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 0;
+  margin-bottom: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.home-hero-features li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1.1rem 0.75rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.home-hero-features li + li {
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.home-hero-features .benefit-icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1.35rem;
+}
+
+.home-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 210px;
+  margin-top: 0;
+  margin-bottom: 3.5rem;
+  padding: 2rem clamp(1.5rem, 5vw, 3.5rem);
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      270deg,
+      #176b58 0%,
+      rgba(23, 107, 88, 0.9) 30%,
+      rgba(23, 107, 88, 0) 62%
+    ),
+    url("../img/perro-gato.jpg") center 42% / cover no-repeat;
+  color: #ffffff;
+}
+
+.home-banner h2 {
+  max-width: 380px;
+  margin: 0 0 1.1rem;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.15;
+}
+
+.home-banner-link {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  background: #a9dd6c;
+  color: #12372f;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.home-banner-link:hover {
+  background: #bde88a;
+}
+
+@media (max-width: 700px) {
+  .home-hero::after {
+    background: rgba(14, 50, 42, 0.78);
+  }
+
+  .home-hero-content {
+    min-height: 0;
+    padding: 2.5rem 0 2rem;
+  }
+
+  .home-hero-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-hero-features li + li {
+    border-left: 0;
+  }
+
+  .home-hero-features li:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .home-banner {
+    background:
+      linear-gradient(rgba(23, 107, 88, 0.86), rgba(23, 107, 88, 0.86)),
+      url("../img/perro-gato.jpg") center / cover no-repeat;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero-buttons .btn-primary,
+  .hero-buttons .btn-secondary {
+    width: 100%;
+  }
+}
+
+/* Productos destacados y equipo (inicio) */
+
+.featured-products {
+  background: linear-gradient(180deg, #ffffff 0%, #eef6ef 100%);
+}
+
+/* Productos destacados: deja ver el patrón de huellas del fondo general. */
+
+.featured-products {
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba(169, 221, 108, 0.28) 0%,
+      rgba(169, 221, 108, 0) 38%
+    ),
+    radial-gradient(
+      circle at 95% 100%,
+      rgba(42, 157, 115, 0.2) 0%,
+      rgba(42, 157, 115, 0) 40%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.75) 0%,
+      rgba(255, 255, 255, 0) 100%
+    );
+}
+
+/* Atención a domicilio: panel verde claro con brillo. */
+
+.home-care {
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(169, 221, 108, 0.35) 0%,
+      rgba(169, 221, 108, 0) 42%
+    ),
+    linear-gradient(135deg, #d3e9da 0%, #eef7ef 60%, #dcefe2 100%);
+}
+
+/* El equipo: fotografía con filtro verde oscuro. */
+
+.home-users {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(14, 50, 42, 0.93) 0%,
+      rgba(14, 50, 42, 0.82) 100%
+    ),
+    url("../img/ejercicio.jpg") center 40% / cover no-repeat fixed;
+}
+
+.home-users-heading h2 {
+  color: #ffffff;
+}
+
+.home-users-heading span {
+  color: #a9dd6c;
+}
+
+.home-users-heading p {
+  color: #d9eadf;
+}
+
+@media (max-width: 800px) {
+  .home-users {
+    background-attachment: scroll;
+  }
+}
+
+/* Las tarjetas del equipo quedan centradas sin importar cuántas sean. */
+
+.home-users-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 300px));
+  justify-content: center;
+}
+
+.featured-product-info a {
+  display: block;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: #176b58;
+  color: #ffffff;
+  font-size: 1.05rem;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+.featured-product-info a:hover {
+  background: #14584d;
+  color: #ffffff;
+  text-decoration: none;
+}

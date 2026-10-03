@@ -1,0 +1,20 @@
+/* =========================================================
+   HOJA DE ESTILOS PRINCIPAL
+   Todas las páginas enlazan solo este archivo; aquí se cargan los
+   módulos en orden. Cada módulo corresponde a una página o a un
+   componente compartido, para pasarlos uno a uno a React.
+   ========================================================= */
+
+@import url("base.css");
+@import url("layout.css");
+@import url("inicio.css");
+@import url("productos.css");
+@import url("carrito.css");
+@import url("consultas.css");
+@import url("contacto.css");
+@import url("formularios.css");
+@import url("agendar.css");
+@import url("blog.css");
+@import url("quienes-somos.css");
+@import url("auth.css");
+@import url("admin.css");

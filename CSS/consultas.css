@@ -1,0 +1,124 @@
+/* =========================================================
+   CONSULTAS
+   Listado de consultas por categoría.
+   ========================================================= */
+
+.services-section {
+  padding: 4rem 0;
+}
+
+.services-section h2 {
+  margin: 0 0 2rem;
+  text-align: center;
+  color: #176b58;
+  font-size: 2rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3rem;
+}
+
+.service-card {
+  display: block;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 8px;
+}
+
+.service-card h3 {
+  margin: 1rem 0 0.4rem;
+  color: #176b58;
+}
+
+.service-card p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.service-card img {
+  width: 100%;
+  height: 300px;
+}
+
+.categoria-servicios {
+  padding-top: 150px;
+}
+
+.categoria-servicios-1 {
+  padding-top: 20px;
+}
+
+.consultas-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.btn-agendar {
+  margin: 20px;
+  display: inline-block;
+  margin-top: 1.2rem;
+  padding: 0.6rem 1.2rem;
+  background: #176b58;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-agendar:hover {
+  background: #183b39;
+  color: #ffffff;
+}
+
+.cerrar-modal {
+  color: #6b8178;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.cerrar-modal:hover {
+  color: #d26945;
+}
+
+@media (max-width: 1000px) {
+  .services-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Consultas: cada categoría en su propio panel */
+
+.categoria-servicios,
+.categoria-servicios-1 {
+  margin-bottom: 2.5rem;
+  padding: 2rem clamp(1rem, 3vw, 2rem) 2.25rem;
+  border: 1px solid #dce8df;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 24px rgba(24, 59, 57, 0.05);
+}
+
+.services-section > section:nth-of-type(even) {
+  background: linear-gradient(135deg, #dfeee4 0%, #edf6ee 100%);
+}
