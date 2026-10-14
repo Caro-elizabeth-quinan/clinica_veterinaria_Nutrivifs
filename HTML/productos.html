@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clinica NutriDifs | Productos</title>
+    <link rel="stylesheet" href="../CSS/app.css" />
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header class="site-header">
+      <div class="container header-content">
+        <a class="brand" href="index.html">
+          <img class="brand-logo" src="../img/logo.svg" alt="" />
+          Clínica NutriDifs
+        </a>
+
+        <nav aria-label="navegación principal">
+          <a href="index.html">Inicio</a>
+          <a href="consultas.html">Consultas</a>
+          <a href="productos.html">Productos</a>
+          <a href="blog.html">Blog</a>
+          <a href="contactanos.html">Contáctanos</a>
+          <a href="quienes-somos.html">Quiénes somos</a>
+        </nav>
+
+        <div class="header-actions">
+          <span class="session-links" data-session-links>
+            <a class="profile-link" href="login.html">Iniciar sesión</a>
+            <a class="profile-link" href="registro.html">Registrarse</a>
+          </span>
+          <a class="carrito-compras" href="carrito.html">Carrito</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main>
+      <section class="page-banner page-banner--productos">
+        <div class="container">
+          <span class="page-banner-kicker">Tienda veterinaria</span>
+          <h1 id="products-title">Nuestros productos</h1>
+          <p>
+            Medicamentos, vacunas, antiparasitarios y suplementos para la salud
+            de tu mascota.
+          </p>
+        </div>
+      </section>
+
+      <section class="products-page container" aria-labelledby="products-title">
+        <!-- FILTROS -->
+        <div class="filter-section">
+          <h2>Filtrar por Categoría</h2>
+
+          <div class="filter-buttons">
+            <button
+              type="button"
+              class="filter-btn active"
+              data-category="todos"
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              data-category="Antibióticos"
+            >
+              Antibióticos
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              data-category="Antiparasitarios"
+            >
+              Antiparasitarios
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              data-category="Antiinflamatorios"
+            >
+              Antiinflamatorios
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              data-category="Dermatología"
+            >
+              Dermatología
+            </button>
+            <button type="button" class="filter-btn" data-category="Digestivo">
+              Digestivo
+            </button>
+            <button type="button" class="filter-btn" data-category="Cardíaco">
+              Cardíaco
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              data-category="Analgésicos"
+            >
+              Analgésicos
+            </button>
+            <button type="button" class="filter-btn" data-category="Vacunas">
+              Vacunas
+            </button>
+            <button
+              type="button"
+              class="filter-btn"
+              data-category="Suplementos"
+            >
+              Suplementos
+            </button>
+          </div>
+
+          <div class="price-filter">
+            <label for="price-filter">Filtrar por precio</label>
+            <select id="price-filter" data-price-filter>
+              <option value="todos">Todos los precios</option>
+              <option value="0-5000">Hasta $5.000</option>
+              <option value="5001-10000">$5.001 - $10.000</option>
+              <option value="10001-20000">$10.001 - $20.000</option>
+              <option value="20001-mas">Más de $20.000</option>
+            </select>
+          </div>
+
+          <p class="filter-result" data-filter-result aria-live="polite">
+            0 productos encontrados
+          </p>
+        </div>
+
+        <!-- CATÁLOGO -->
+        <div class="products-catalog">
+          <div class="catalogo-header">
+            <h2>Catálogo Farmacéutico Veterinario</h2>
+
+            <p>
+              Encuentra medicamentos, antiparasitarios y vacunas certificadas
+              para tus mascotas.
+            </p>
+          </div>
+
+          <!-- PRODUCTOS -->
+          <div class="products-grid" id="products-grid">
+            <!-- Las tarjetas se generan con JavaScript desde el arreglo de productos (JS/app.js) -->
+          </div>
+        </div>
+
+        <!-- INTRODUCCIÓN -->
+        <div class="products-introduction">
+          <img
+            class="products-introduction-image"
+            src="../img/vacunas.jpg"
+            alt="Perro recibiendo una vacuna en la clínica"
+          />
+          <span class="products-label"> Clínica NutriDifs </span>
+
+          <h2 class="products-title">Calidad para quienes más quieres</h2>
+
+          <p>
+            En nuestra clínica tenemos los mejores productos para la salud y
+            bienestar de tus mascotas, todos de la mejor calidad y con los
+            precios más competitivos del mercado.
+          </p>
+
+          <p>
+            Nuestro catálogo de productos veterinarios incluye medicamentos,
+            vacunas, antiparasitarios y suplementos nutricionales seleccionados
+            para satisfacer las necesidades de tu compañero peludo.
+          </p>
+
+          <!-- INFORMACIÓN -->
+          <div class="products-info">
+            <div class="products-info-item">
+              <strong>Calidad</strong>
+              <span>Productos seleccionados</span>
+            </div>
+
+            <div class="products-info-item">
+              <strong>Variedad</strong>
+              <span>Opciones para tu mascota</span>
+            </div>
+
+            <div class="products-info-item">
+              <strong>Bienestar</strong>
+              <span>Cuidado responsable</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div>
+          <h2>Clinica NutriDifs</h2>
+
+          <p>Teléfono: +56 9 4567 8910</p>
+
+          <p>
+            <a href="mailto:ClinicVEtDifs@gmail.com">
+              ClinicVEtDifs@gmail.com
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <h2>Integrantes</h2>
+
+          <ul>
+            <li>Carolina Quinan</li>
+            <li>Liza Micele</li>
+          </ul>
+        </div>
+
+        <div>
+          <h2>Sección</h2>
+
+          <p>DSY1104 – 2026</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="../JS/datos.js" defer></script>
+    <script src="../JS/app.js" defer></script>
+    <script src="../JS/auth.js" defer></script>
+    <script src="../JS/tienda.js" defer></script>
+    <script src="../JS/agenda.js" defer></script>
+  </body>
+</html>

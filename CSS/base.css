@@ -1,0 +1,188 @@
+/* =========================================================
+   BASE
+   Reglas globales: reset, tipografía, fondo general, botones y mensajes de formulario.
+   En React: estilos globales (index.css).
+   ========================================================= */
+
+:root {
+  font-family: "Trebuchet MS", Verdana, sans-serif;
+  color: #183b39;
+  background: #f4f8f4;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f4f8f4;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+.container {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 25px auto;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  min-width: 200px;
+  padding: 0.8rem 1.4rem;
+  border-radius: 0.45rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: #176b58;
+  color: #ffffff;
+  border: 2px solid #176b58;
+}
+
+.btn-primary:hover {
+  background: #14584d;
+  border-color: #14584d;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #176b58;
+  border: 2px solid #176b58;
+}
+
+.btn-secondary:hover {
+  background: rgba(23, 107, 88, 0.08);
+}
+
+.custom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0;
+  margin: 0 0 30px;
+  list-style: none;
+}
+
+.custom-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1rem;
+  color: #303a35;
+}
+
+.custom-list li span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #dff2e7;
+  color: #3b8f68;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+#appointment-message {
+  margin: 0;
+  color: #1a6d5d;
+  font-weight: 700;
+  text-align: center;
+}
+
+#profile-session-view {
+  min-height: calc(100vh - 76px);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+#profile-session-view[hidden] {
+  display: none;
+}
+
+#profile-session-view h3 {
+  margin: 0 0 1rem;
+  color: #176b58;
+  font-size: 1.25rem;
+}
+
+#profile-session-view p {
+  margin: 0 0 0.5rem;
+  color: #496560;
+}
+
+#profile-session-view [data-profile-logout] {
+  margin-top: auto;
+}
+
+@media (max-width: 600px) {
+  .container {
+    width: min(100% - 1.5rem, 1120px);
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.breadcrumb {
+  display: block;
+  flex: none;
+  margin-bottom: 1.5rem;
+  color: #6b8178;
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: #176b58;
+  font-weight: 400;
+}
+
+/* El atributo hidden debe ganar siempre, aunque la clase del elemento
+     defina su propio "display" (botones, imágenes, grillas). */
+
+[hidden] {
+  display: none !important;
+}
+
+/* Fondo general: degradado suave con un patrón de huellas. */
+
+body {
+  background-color: #f1f7f1;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='%23176b58' fill-opacity='0.055'%3E%3Cg transform='translate(28 30) rotate(-18)'%3E%3Cellipse cx='0' cy='0' rx='4' ry='5.500'/%3E%3Cellipse cx='9' cy='-7' rx='4' ry='5.500'/%3E%3Cellipse cx='19' cy='-7' rx='4' ry='5.500'/%3E%3Cellipse cx='28' cy='0' rx='4' ry='5.500'/%3E%3Cpath d='M14 2c-7 0-12 6-12 11 0 4 3 6 6.500 6 2.300 0 3.500-1 5.500-1s3.200 1 5.500 1c3.500 0 6.500-2 6.500-6 0-5-5-11-12-11z'/%3E%3C/g%3E%3Cg transform='translate(112 118) rotate(22)'%3E%3Cellipse cx='0' cy='0' rx='4' ry='5.500'/%3E%3Cellipse cx='9' cy='-7' rx='4' ry='5.500'/%3E%3Cellipse cx='19' cy='-7' rx='4' ry='5.500'/%3E%3Cellipse cx='28' cy='0' rx='4' ry='5.500'/%3E%3Cpath d='M14 2c-7 0-12 6-12 11 0 4 3 6 6.500 6 2.300 0 3.500-1 5.500-1s3.200 1 5.500 1c3.500 0 6.500-2 6.500-6 0-5-5-11-12-11z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg, #eef6ef 0%, #f6faf5 45%, #e8f2ea 100%);
+  background-attachment: fixed;
+}

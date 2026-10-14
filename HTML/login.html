@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar sesión | Clínica NutriDifs</title>
+    <link rel="stylesheet" href="../CSS/app.css" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <a class="brand" href="index.html">
+          <img class="brand-logo" src="../img/logo.svg" alt="" />
+          Clínica NutriDifs
+        </a>
+
+        <nav aria-label="Navegación principal">
+          <a href="index.html">Inicio</a>
+          <a href="consultas.html">Consultas</a>
+          <a href="productos.html">Productos</a>
+          <a href="blog.html">Blog</a>
+          <a href="contactanos.html">Contáctanos</a>
+          <a href="quienes-somos.html">Quiénes somos</a>
+        </nav>
+
+        <div class="header-actions">
+          <span class="session-links" data-session-links>
+            <a class="profile-link" href="login.html">Iniciar sesión</a>
+            <a class="profile-link" href="registro.html">Registrarse</a>
+          </span>
+          <a class="carrito-compras" href="carrito.html">Carrito</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth-page">
+      <div class="auth-shell">
+        <img
+          class="auth-logo"
+          src="../img/logo.svg"
+          alt="Logo de Clínica NutriDifs"
+        />
+        <a class="auth-brand" href="index.html">Clínica NutriDifs</a>
+        <p class="auth-kicker">Acceso de clientes</p>
+        <h1 class="auth-title">Iniciar sesión</h1>
+        <p class="auth-subtitle">
+          Ingresa para continuar con tus compras y reservas.
+        </p>
+        <form
+          id="standalone-login-form"
+          class="auth-form"
+          data-standalone-login
+          novalidate
+        >
+          <label for="email">Correo electrónico</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="usuario@duoc.cl"
+            maxlength="100"
+          />
+          <small class="campo-ayuda">
+            Correos permitidos: @duoc.cl, @profesor.duoc.cl y @gmail.com.
+          </small>
+
+          <label for="password">Contraseña</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            maxlength="10"
+          />
+          <small class="campo-ayuda">Entre 4 y 10 caracteres.</small>
+
+          <p
+            id="standalone-login-message"
+            class="auth-message"
+            aria-live="polite"
+          ></p>
+          <button class="auth-button" type="submit">Iniciar sesión</button>
+        </form>
+        <nav class="auth-links" aria-label="Opciones de acceso">
+          <a href="registro.html">Crear una cuenta</a>
+          <a href="index.html">Volver al inicio</a>
+        </nav>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div>
+          <h2>Clínica NutriDifs</h2>
+          <p>Cuidamos la salud y bienestar de tus mascotas.</p>
+          <p>Teléfono: +56 9 4567 8910</p>
+          <p>
+            <a href="mailto:contacto@nutridifs.cl">contacto@nutridifs.cl</a>
+          </p>
+        </div>
+        <div>
+          <h2>Integrantes</h2>
+          <ul>
+            <li>Carolina Quinan</li>
+            <li>Liza Micele</li>
+          </ul>
+        </div>
+        <div>
+          <h2>Sección</h2>
+          <p>DSY1104 – 2026</p>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <p>© 2026 Clínica NutriDifs. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <script src="../JS/datos.js" defer></script>
+    <script src="../JS/app.js" defer></script>
+    <script src="../JS/auth.js" defer></script>
+    <script src="../JS/tienda.js" defer></script>
+    <script src="../JS/agenda.js" defer></script>
+  </body>
+</html>

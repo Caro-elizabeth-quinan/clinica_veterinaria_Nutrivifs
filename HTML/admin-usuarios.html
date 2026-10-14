@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usuarios | Administración | Clínica NutriDifs</title>
+    <link rel="stylesheet" href="../CSS/app.css" />
+  </head>
+
+  <body class="admin-body" data-admin-section="usuarios" data-admin-only="true">
+    <aside class="admin-sidebar">
+      <a class="brand" href="admin-productos.html">
+        <img class="brand-logo" src="../img/logo.svg" alt="" />
+        Clínica NutriDifs
+      </a>
+      <p class="admin-sidebar-subtitle">Panel de administración</p>
+
+      <nav aria-label="Menú de administración" data-admin-nav>
+        <a href="admin.html" data-section="inicio" data-roles="Administrador"
+          >Inicio</a
+        >
+        <a href="admin-productos.html" data-section="productos">Productos</a>
+        <a
+          href="admin-usuarios.html"
+          data-section="usuarios"
+          data-roles="Administrador"
+          >Usuarios</a
+        >
+        <a href="admin-ordenes.html" data-section="ordenes">Órdenes</a>
+        <a
+          href="admin-citas.html"
+          data-section="citas"
+          data-roles="Administrador"
+          >Citas</a
+        >
+        <a href="index.html" data-section="tienda" data-roles="Administrador"
+          >Ver tienda</a
+        >
+        <button type="button" class="admin-logout" data-profile-logout>
+          Cerrar sesión
+        </button>
+      </nav>
+
+      <p class="admin-sidebar-footer" data-admin-user></p>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-heading">
+        <div>
+          <span class="admin-eyebrow">MANTENEDOR</span>
+          <h1>Usuarios</h1>
+        </div>
+        <a class="btn-primary" href="admin-usuario-form.html">Nuevo usuario</a>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">RUN</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Correo</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Comuna</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody data-admin-users></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script src="../JS/datos.js" defer></script>
+    <script src="../JS/app.js" defer></script>
+    <script src="../JS/auth.js" defer></script>
+    <script src="../JS/admin.js" defer></script>
+  </body>
+</html>

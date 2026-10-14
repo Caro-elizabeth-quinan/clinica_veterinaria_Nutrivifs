@@ -1,0 +1,227 @@
+/* =========================================================
+   AUTH
+   Páginas de inicio de sesión y registro.
+   ========================================================= */
+
+.profile-message {
+  min-height: 2.4em;
+  margin: 0.4rem 0 0;
+  color: #d26945;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem 1rem;
+  background: #f1f6f3;
+}
+
+.auth-card,
+.auth-shell {
+  width: min(100%, 492px);
+  padding: 2rem 1.9rem 1.8rem;
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 9px;
+  box-shadow: 0 10px 28px rgba(24, 59, 57, 0.08);
+  text-align: center;
+}
+
+.auth-brand {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: #176b58;
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-eyebrow,
+.auth-kicker {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #d26945;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.auth-card h1,
+.auth-title {
+  margin: 0;
+  color: #183d3a;
+  font-family: Georgia, serif;
+  font-size: 2rem;
+}
+
+.auth-description,
+.auth-subtitle {
+  margin: 0.9rem 0 1.8rem;
+  color: #5d756e;
+  font-family: Georgia, serif;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+.auth-form label {
+  margin-top: 0.55rem;
+  color: #183d3a;
+  font-family: Georgia, serif;
+  font-weight: 700;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 43px;
+  padding: 0.7rem;
+  border: 1px solid #b9cec3;
+  border-radius: 5px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #1a6d5d;
+  box-shadow: 0 0 0 3px rgba(26, 109, 93, 0.12);
+}
+
+.auth-form .btn-primary {
+  width: 100%;
+  min-width: 0;
+  margin-top: 1.4rem;
+  border: 0;
+  cursor: pointer;
+}
+
+.auth-button {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 1.4rem;
+  border: 0;
+  border-radius: 5px;
+  background: #176b58;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.auth-button:hover,
+.auth-button:focus-visible {
+  background: #14584d;
+}
+
+.auth-message {
+  color: #c5543e;
+}
+
+.auth-message {
+  min-height: 1.4em;
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.auth-links {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.4rem;
+}
+
+.auth-links a {
+  color: #5e1597;
+  font-family: Georgia, serif;
+  text-decoration: none;
+}
+
+.auth-links a:hover {
+  color: #176b58;
+  text-decoration: underline;
+}
+
+main.auth-page {
+  min-height: calc(100vh - 77px);
+}
+
+.auth-card,
+.auth-shell {
+  margin: 0 auto;
+}
+
+.auth-logo {
+  width: 84px;
+  margin: 0 auto 0.6rem;
+}
+
+.auth-shell .auth-brand {
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.auth-form select {
+  width: 100%;
+  min-height: 43px;
+  padding: 0.7rem;
+  border: 1px solid #b9cec3;
+  border-radius: 5px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.auth-form .auth-checkbox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.auth-form .auth-checkbox input {
+  width: auto;
+  min-height: 0;
+}
+
+.auth-checkbox .campo-error {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+.auth-form .campo-ayuda,
+.auth-form .campo-error {
+  margin-top: 0;
+}
+
+/* Login y registro: fotografía de fondo */
+
+main.auth-page {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(14, 50, 42, 0.88) 0%,
+      rgba(23, 107, 88, 0.7) 100%
+    ),
+    url("../img/perro-gato.jpg") center / cover no-repeat fixed;
+}
+
+.auth-card,
+.auth-shell {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 800px) {
+  main.auth-page {
+    background-attachment: scroll;
+  }
+}

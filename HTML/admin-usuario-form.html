@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usuario | Administración | Clínica NutriDifs</title>
+    <link rel="stylesheet" href="../CSS/app.css" />
+  </head>
+
+  <body class="admin-body" data-admin-section="usuarios" data-admin-only="true">
+    <aside class="admin-sidebar">
+      <a class="brand" href="admin-productos.html">
+        <img class="brand-logo" src="../img/logo.svg" alt="" />
+        Clínica NutriDifs
+      </a>
+      <p class="admin-sidebar-subtitle">Panel de administración</p>
+
+      <nav aria-label="Menú de administración" data-admin-nav>
+        <a href="admin.html" data-section="inicio" data-roles="Administrador"
+          >Inicio</a
+        >
+        <a href="admin-productos.html" data-section="productos">Productos</a>
+        <a
+          href="admin-usuarios.html"
+          data-section="usuarios"
+          data-roles="Administrador"
+          >Usuarios</a
+        >
+        <a href="admin-ordenes.html" data-section="ordenes">Órdenes</a>
+        <a
+          href="admin-citas.html"
+          data-section="citas"
+          data-roles="Administrador"
+          >Citas</a
+        >
+        <a href="index.html" data-section="tienda" data-roles="Administrador"
+          >Ver tienda</a
+        >
+        <button type="button" class="admin-logout" data-profile-logout>
+          Cerrar sesión
+        </button>
+      </nav>
+
+      <p class="admin-sidebar-footer" data-admin-user></p>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-heading">
+        <div>
+          <span class="admin-eyebrow">USUARIOS</span>
+          <h1 data-form-title>Nuevo usuario</h1>
+        </div>
+        <div class="admin-heading-actions">
+          <a class="btn-primary" href="#" data-edit-link hidden>Editar</a>
+          <a class="btn-secondary" href="admin-usuarios.html"
+            >Volver al listado</a
+          >
+        </div>
+      </div>
+
+      <form class="admin-form" data-user-form novalidate>
+        <label>
+          RUN
+          <input
+            type="text"
+            name="run"
+            placeholder="19011022K"
+            maxlength="9"
+            autocomplete="off"
+          />
+          <small class="campo-ayuda">Sin puntos ni guion. Ej: 19011022K.</small>
+        </label>
+
+        <div class="admin-form-row">
+          <label>
+            Nombre
+            <input type="text" name="name" maxlength="50" />
+          </label>
+
+          <label>
+            Apellidos
+            <input type="text" name="apellido" maxlength="100" />
+          </label>
+        </div>
+
+        <label>
+          Correo
+          <input
+            type="text"
+            name="email"
+            inputmode="email"
+            placeholder="usuario@duoc.cl"
+            maxlength="100"
+          />
+          <small class="campo-ayuda"
+            >Solo @duoc.cl, @profesor.duoc.cl y @gmail.com.</small
+          >
+        </label>
+
+        <div class="admin-form-row">
+          <label>
+            Fecha de nacimiento (opcional)
+            <input type="date" name="birthDate" />
+          </label>
+
+          <label>
+            Teléfono (opcional)
+            <input
+              type="tel"
+              name="phone"
+              placeholder="+56934040042"
+              maxlength="12"
+            />
+          </label>
+        </div>
+
+        <label>
+          Tipo de usuario
+          <select name="role">
+            <option value="">-- Selecciona el tipo de usuario --</option>
+            <option value="Administrador">Administrador</option>
+            <option value="Cliente">Cliente</option>
+            <option value="Vendedor">Vendedor</option>
+          </select>
+        </label>
+
+        <div class="admin-form-row">
+          <label>
+            Región
+            <select name="region" data-region-select></select>
+          </label>
+
+          <label>
+            Comuna
+            <select name="comuna" data-comuna-select></select>
+          </label>
+        </div>
+
+        <label>
+          Dirección
+          <input type="text" name="direccion" maxlength="300" />
+        </label>
+
+        <div class="admin-form-row" data-password-field>
+          <label>
+            Contraseña
+            <input
+              type="password"
+              name="password"
+              maxlength="10"
+              autocomplete="new-password"
+            />
+            <small class="campo-ayuda" data-password-help>
+              Entre 4 y 10 caracteres y al menos una mayúscula.
+            </small>
+          </label>
+
+          <label>
+            Confirmar contraseña
+            <input
+              type="password"
+              name="confirmPassword"
+              maxlength="10"
+              autocomplete="new-password"
+            />
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary">Guardar usuario</button>
+        <p class="profile-message" data-form-message role="status"></p>
+      </form>
+    </main>
+
+    <script src="../JS/datos.js" defer></script>
+    <script src="../JS/app.js" defer></script>
+    <script src="../JS/auth.js" defer></script>
+    <script src="../JS/admin.js" defer></script>
+  </body>
+</html>

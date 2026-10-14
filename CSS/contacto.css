@@ -1,0 +1,156 @@
+/* =========================================================
+   CONTACTO
+   Página Contáctanos: formulario, mapa y datos de contacto.
+   ========================================================= */
+
+.contacto-section {
+  padding: 3rem 0;
+}
+
+.contacto-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  background: #ffffff;
+  padding: 2rem;
+  border: 1px solid #dce8df;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(24, 59, 57, 0.05);
+}
+
+.contacto-formulario {
+  width: 100%;
+}
+
+.contacto-formulario .campo-formulario {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.contacto-formulario label {
+  color: #183d3a;
+  font-weight: 700;
+}
+
+.contacto-formulario input,
+.contacto-formulario select,
+.contacto-formulario textarea {
+  width: 100%;
+  padding: 0.7rem;
+  margin-top: 0.5rem;
+  border: 1px solid #dce8df;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #294b45;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.contacto-formulario textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.contacto-formulario input:focus,
+.contacto-formulario select:focus,
+.contacto-formulario textarea:focus {
+  outline: none;
+  border-color: #176b58;
+  box-shadow: 0 0 0 3px rgba(23, 107, 88, 0.12);
+}
+
+.contacto-formulario .btn-agendar {
+  width: 100%;
+}
+
+.contacto-mapa {
+  width: 100%;
+}
+
+.contacto-mapa h3 {
+  color: #176b58;
+  margin: 0 0 0.5rem;
+}
+
+.contacto-mapa p {
+  margin: 0 0 1rem;
+  color: #6b8178;
+}
+
+.mapa-placeholder {
+  width: 100%;
+  min-height: 300px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #eef4ed;
+  color: #6b8178;
+  border: 2px dashed #9eb5a7;
+  border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  padding: 1rem;
+}
+
+.mapa-placeholder iframe {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  border: 0;
+}
+
+@media (max-width: 800px) {
+  .contacto-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .contacto-section {
+    padding: 2rem 0;
+  }
+
+  .contacto-grid {
+    padding: 1.25rem;
+    gap: 2rem;
+  }
+
+  .mapa-placeholder,
+  .mapa-placeholder iframe {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 520px) {
+  .contacto-grid {
+    border-radius: 8px;
+  }
+
+  .contacto-formulario .btn-agendar {
+    width: 100%;
+  }
+}
+
+.contacto-datos {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+  color: #2b4a45;
+  line-height: 1.4;
+}
+
+.contacto-datos li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.contacto-imagen {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: 10px;
+}

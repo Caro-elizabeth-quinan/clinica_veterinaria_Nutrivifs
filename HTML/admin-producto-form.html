@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Producto | Administración | Clínica NutriDifs</title>
+    <link rel="stylesheet" href="../CSS/app.css" />
+  </head>
+
+  <body
+    class="admin-body"
+    data-admin-section="productos"
+    data-admin-only="editar"
+  >
+    <aside class="admin-sidebar">
+      <a class="brand" href="admin-productos.html">
+        <img class="brand-logo" src="../img/logo.svg" alt="" />
+        Clínica NutriDifs
+      </a>
+      <p class="admin-sidebar-subtitle">Panel de administración</p>
+
+      <nav aria-label="Menú de administración" data-admin-nav>
+        <a href="admin.html" data-section="inicio" data-roles="Administrador"
+          >Inicio</a
+        >
+        <a href="admin-productos.html" data-section="productos">Productos</a>
+        <a
+          href="admin-usuarios.html"
+          data-section="usuarios"
+          data-roles="Administrador"
+          >Usuarios</a
+        >
+        <a href="admin-ordenes.html" data-section="ordenes">Órdenes</a>
+        <a
+          href="admin-citas.html"
+          data-section="citas"
+          data-roles="Administrador"
+          >Citas</a
+        >
+        <a href="index.html" data-section="tienda" data-roles="Administrador"
+          >Ver tienda</a
+        >
+        <button type="button" class="admin-logout" data-profile-logout>
+          Cerrar sesión
+        </button>
+      </nav>
+
+      <p class="admin-sidebar-footer" data-admin-user></p>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-heading">
+        <div>
+          <span class="admin-eyebrow">PRODUCTOS</span>
+          <h1 data-form-title>Nuevo producto</h1>
+        </div>
+        <div class="admin-heading-actions">
+          <a class="btn-primary" href="#" data-edit-link hidden>Editar</a>
+          <a class="btn-secondary" href="admin-productos.html"
+            >Volver al listado</a
+          >
+        </div>
+      </div>
+
+      <form class="admin-form" data-product-form novalidate>
+        <label>
+          Código producto
+          <input type="text" name="id" placeholder="ME023" autocomplete="off" />
+          <small class="campo-ayuda">Texto, mínimo 3 caracteres.</small>
+        </label>
+
+        <label>
+          Nombre
+          <input type="text" name="name" maxlength="100" />
+        </label>
+
+        <label>
+          Descripción (opcional)
+          <textarea name="description" rows="3" maxlength="500"></textarea>
+        </label>
+
+        <div class="admin-form-row">
+          <label>
+            Precio
+            <input
+              type="text"
+              name="price"
+              inputmode="decimal"
+              placeholder="0"
+            />
+            <small class="campo-ayuda"
+              >Mínimo 0 (producto gratis). Acepta decimales.</small
+            >
+          </label>
+
+          <label>
+            Categoría
+            <select name="category"></select>
+          </label>
+        </div>
+
+        <div class="admin-form-row">
+          <label>
+            Stock
+            <input
+              type="text"
+              name="stock"
+              inputmode="numeric"
+              placeholder="0"
+            />
+            <small class="campo-ayuda"
+              >Cantidad en inventario. Solo números enteros.</small
+            >
+          </label>
+
+          <label>
+            Stock crítico (opcional)
+            <input type="text" name="stockCritico" inputmode="numeric" />
+            <small class="campo-ayuda"
+              >Se alerta cuando el stock sea igual o inferior.</small
+            >
+          </label>
+        </div>
+
+        <p class="admin-alert" data-stock-alert role="alert" hidden>
+          <strong>⚠ Stock crítico:</strong> el stock es igual o inferior al
+          stock crítico definido.
+        </p>
+
+        <label>
+          Imagen (opcional)
+          <input type="file" name="image" accept="image/*" />
+          <small class="campo-ayuda">Archivo de imagen de hasta 300 KB.</small>
+        </label>
+        <img
+          class="admin-image-preview"
+          data-image-preview
+          alt="Vista previa del producto"
+          hidden
+        />
+
+        <button type="submit" class="btn-primary">Guardar producto</button>
+        <p class="profile-message" data-form-message role="status"></p>
+      </form>
+    </main>
+
+    <script src="../JS/datos.js" defer></script>
+    <script src="../JS/app.js" defer></script>
+    <script src="../JS/auth.js" defer></script>
+    <script src="../JS/admin.js" defer></script>
+  </body>
+</html>
