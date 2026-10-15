@@ -1,0 +1,55 @@
+/* =========================================================
+   FORMULARIOS
+   Campos de formulario compartidos: contenedor del campo, ayuda y mensajes de error.
+   En React: componente <Campo /> reutilizable.
+   ========================================================= */
+
+.campo-formulario {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.campo-formulario input {
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border: 1px solid #dce8df;
+  border-radius: 4px;
+}
+
+.campo-invalido {
+  border-color: #d24545 !important;
+}
+
+.campo-error {
+  display: block;
+  margin-top: 0.35rem;
+  color: #d24545;
+  font-size: 0.85rem;
+}
+
+.campo-ayuda {
+  display: block;
+  margin-top: 0.35rem;
+  color: #6b8178;
+  font-size: 0.85rem;
+}
+
+/* .campo-formulario define "display: flex", lo que pisa el
+     "display: none" nativo del atributo [hidden]. Sin esta regla,
+     "Escribe la especie" quedaba visible aunque estuviera hidden. */
+
+.campo-formulario[hidden] {
+  display: none;
+}
+
+.campo-completo {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+  .campo-completo {
+    grid-column: auto;
+  }
+}

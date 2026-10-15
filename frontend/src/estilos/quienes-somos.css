@@ -1,0 +1,359 @@
+/* =========================================================
+   QUIENES SOMOS
+   Página Quiénes somos: historia, misión, visión, valores, equipo y ubicación.
+   ========================================================= */
+
+.about-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.about-visual {
+  overflow: hidden;
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #eaf6ed 0%, #dceee2 100%);
+  border: 1px dashed #bfceb9;
+  border-radius: 18px;
+  text-align: center;
+  color: #176b58;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  box-shadow: 0 8px 24px rgba(24, 59, 57, 0.04);
+}
+
+.about-visual img {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  object-fit: cover;
+  border: 0;
+}
+
+.about-intro {
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 18px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(24, 59, 57, 0.04);
+}
+
+.about-intro h2 {
+  margin: 0 0 1rem;
+  color: #183d3a;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.05;
+}
+
+.about-intro p {
+  margin: 0 0 1rem;
+  color: #40615d;
+  line-height: 1.6;
+}
+
+.about-intro p:last-child {
+  margin-bottom: 0;
+}
+
+.about-intro .btn-primary {
+  display: inline-block;
+  padding: 0.85rem 1.6rem;
+  background: #176b58;
+  color: #ffffff;
+  border-radius: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.about-intro .btn-primary:hover {
+  background: #104e40;
+}
+
+.quienes-somos-hero {
+  background: linear-gradient(135deg, #dceee2 0%, #edf7ef 100%);
+  padding: 4rem 0 3rem;
+}
+
+.quienes-somos-hero-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.quienes-somos-hero-content {
+  max-width: 760px;
+}
+
+.quienes-somos-hero-image {
+  justify-self: end;
+  max-width: 320px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(24, 59, 57, 0.08);
+}
+
+.quienes-somos-hero-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+
+.quienes-somos-kicker {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: #d26945;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.quienes-somos-hero h1 {
+  margin: 0 0 1rem;
+  color: #176b58;
+  font-size: clamp(2.3rem, 5vw, 4rem);
+}
+
+.quienes-somos-hero p {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #2b4a45;
+}
+
+.about-section,
+.values-section,
+.features-section,
+.team-section,
+.cta-section {
+  padding: 4rem 0;
+}
+
+.location-section {
+  padding: 0 0 4rem;
+}
+
+.location-card {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 2rem;
+  align-items: center;
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(24, 59, 57, 0.04);
+}
+
+.location-info h2 {
+  margin: 0 0 0.75rem;
+  color: #176b58;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+}
+
+.location-info p {
+  margin: 0;
+  color: #355a55;
+  line-height: 1.7;
+}
+
+.location-map {
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.location-map iframe {
+  display: block;
+  width: 100%;
+  min-height: 280px;
+  border: 0;
+}
+
+.values-grid,
+.features-section .features-grid,
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.value-card,
+.feature-card {
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 20px rgba(24, 59, 57, 0.04);
+}
+
+.value-card h3,
+.feature-card h3,
+.team-grid .team-card h3 {
+  margin: 0 0 0.75rem;
+  color: #176b58;
+  font-size: 1.2rem;
+}
+
+.value-card p,
+.feature-card p,
+.team-grid .team-card p {
+  margin: 0;
+  line-height: 1.7;
+  color: #496560;
+}
+
+.cta-box {
+  background: linear-gradient(135deg, #176b58 0%, #0f4f45 100%);
+  color: #ffffff;
+  border-radius: 20px;
+  padding: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 12px 28px rgba(23, 107, 88, 0.15);
+}
+
+.cta-box h2 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.8rem, 4vw, 2.3rem);
+}
+
+.cta-box p {
+  margin: 0;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 0.9rem 1.4rem;
+  border-radius: 999px;
+  background: #d26945;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .about-layout,
+  .quienes-somos-hero-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .quienes-somos-hero-image {
+    justify-self: center;
+  }
+}
+
+@media (max-width: 800px) {
+  .location-card {
+    grid-template-columns: 1fr;
+  }
+
+  .values-grid,
+  .features-section .features-grid,
+  .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cta-box {
+    display: grid;
+  }
+}
+
+@media (max-width: 700px) {
+  .values-grid,
+  .features-section .features-grid,
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .quienes-somos-hero {
+    padding-top: 3rem;
+  }
+
+  .about-section,
+  .values-section,
+  .features-section,
+  .team-section,
+  .cta-section,
+  .location-section {
+    padding: 3rem 0;
+  }
+}
+
+/* Quiénes somos */
+
+.quienes-somos-hero {
+  background:
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(169, 221, 108, 0.35) 0%,
+      rgba(169, 221, 108, 0) 45%
+    ),
+    linear-gradient(135deg, #cfe8d8 0%, #eef7ef 100%);
+}
+
+.quienes-somos-hero-image {
+  max-width: 420px;
+  box-shadow: 0 18px 40px rgba(24, 59, 57, 0.2);
+}
+
+.quienes-somos-hero-image img {
+  min-height: 260px;
+}
+
+.values-section {
+  background: linear-gradient(180deg, rgba(223, 234, 226, 0) 0%, #dfeae2 100%);
+}
+
+.features-section {
+  background: #183b39;
+}
+
+.features-section h2 {
+  color: #ffffff;
+}
+
+.team-section {
+  background: #dfeae2;
+}
+
+.value-card,
+.team-grid .team-card {
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.card-image {
+  width: calc(100% + 4rem);
+  max-width: none;
+  height: 170px;
+  margin: 0 -2rem 1.1rem;
+  object-fit: cover;
+}
+
+.feature-card-icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.8rem;
+  border-radius: 50%;
+  background: #e4f1ea;
+  font-size: 1.5rem;
+}
