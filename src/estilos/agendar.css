@@ -1,0 +1,480 @@
+/* =========================================================
+   AGENDAR
+   Página "Agenda tu consulta": panel informativo y formulario.
+   ========================================================= */
+
+.appointment-page {
+  max-width: 1000px;
+  padding: 3.5rem 0 5rem;
+}
+
+body:has(.appointment-page) {
+  background: #f1f6f3;
+}
+
+.appointment-layout {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 1.75rem;
+  align-items: start;
+  margin-top: 2rem;
+}
+
+.appointment-info,
+.appointment-form {
+  background: #ffffff;
+  border: 1px solid #d5e4dc;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(24, 59, 57, 0.08);
+}
+
+.appointment-info {
+  position: relative;
+  padding: 2.2rem 1.7rem;
+}
+
+.appointment-info::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: #1a6d5d;
+  content: "";
+}
+
+.appointment-info h2 {
+  margin: 0 0 1.2rem;
+  color: #183d3a;
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.appointment-info p {
+  margin: 0 0 1rem;
+  color: #355a55;
+  line-height: 1.5;
+}
+
+.appointment-info ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #355a55;
+  line-height: 1.9;
+}
+
+.appointment-info li::marker {
+  color: #d26945;
+}
+
+.appointment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.1rem;
+  padding: 1.8rem 1.7rem 1.5rem;
+}
+
+.appointment-form label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #183d3a;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.appointment-form input,
+.appointment-form select,
+.appointment-form textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #b9cec3;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #294b45;
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.appointment-form input:focus,
+.appointment-form select:focus,
+.appointment-form textarea:focus {
+  outline: none;
+  border-color: #1a6d5d;
+  box-shadow: 0 0 0 3px rgba(26, 109, 93, 0.12);
+}
+
+.appointment-form textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.appointment-form button {
+  width: 100%;
+  margin-top: 0.7rem;
+  min-height: 46px;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.appointment-form button:hover {
+  background: #14584d;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 800px) {
+  .appointment-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .appointment-page {
+    padding-top: 2rem;
+  }
+
+  .appointment-form {
+    grid-template-columns: 1fr;
+    padding: 1.25rem;
+  }
+
+  .appointment-info {
+    padding: 1.6rem 1.25rem;
+  }
+}
+
+/* Agendar */
+
+.appointment-info {
+  overflow: hidden;
+}
+
+.appointment-info-image {
+  width: 100%;
+  height: 180px;
+  margin-bottom: 1.25rem;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   Rediseño: fondo, pasos, tarjeta informativa y secciones
+   ========================================================= */
+
+/* Fondo de toda la zona del formulario: foto con una capa de color
+   clara para que las tarjetas y el texto se lean bien. */
+.appointment-bg {
+  position: relative;
+  /* Evita que el margen de la sección interior deje una franja arriba. */
+  display: flow-root;
+  background:
+    radial-gradient(
+      circle at 12% 18%,
+      rgba(245, 197, 139, 0.28) 0,
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 88% 82%,
+      rgba(26, 109, 93, 0.2) 0,
+      transparent 38%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(236, 245, 240, 0.93) 0%,
+      rgba(247, 242, 233, 0.9) 100%
+    ),
+    url("/img/perro-gato.jpg") center / cover;
+}
+
+.appointment-bg .appointment-page {
+  padding-top: 2.5rem;
+}
+
+/* Pasos */
+.appointment-steps {
+  list-style: none;
+  /* Solo el margen inferior: los laterales los define .row (Bootstrap). */
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.appointment-step {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  height: 100%;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #d5e4dc;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.appointment-step strong {
+  display: block;
+  color: #183d3a;
+  font-size: 0.98rem;
+}
+
+.appointment-step small {
+  color: #557570;
+}
+
+.appointment-step-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1a6d5d;
+  color: #ffffff;
+  font-size: 1.15rem;
+}
+
+/* Tarjeta informativa */
+.appointment-info-media {
+  position: relative;
+}
+
+.appointment-info-badge {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 2rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(24, 61, 58, 0.88);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.appointment-info ul.appointment-services {
+  padding: 0;
+  list-style: none;
+}
+
+.appointment-services li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.appointment-services .bi {
+  color: #1a6d5d;
+}
+
+.appointment-contact {
+  margin-top: 1.4rem;
+  padding: 1rem 1.1rem;
+  border-radius: 10px;
+  background: #f1f6f3;
+}
+
+.appointment-info .appointment-contact p {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.3rem 0;
+  font-size: 0.92rem;
+}
+
+.appointment-contact .bi {
+  color: #d26945;
+}
+
+/* Formulario: encabezado y títulos de sección */
+.appointment-form-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2ece6;
+}
+
+.appointment-form-header > .bi {
+  font-size: 2rem;
+  color: #1a6d5d;
+}
+
+.appointment-form-header h2 {
+  margin: 0;
+  text-align: left;
+  color: #183d3a;
+  font-size: 1.35rem;
+}
+
+.appointment-form-header p {
+  margin: 0;
+  color: #6b8178;
+  font-size: 0.88rem;
+}
+
+.appointment-form-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.1rem 0 0.6rem;
+  color: #d26945;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* .btn-agendar trae "margin: 20px" desde consultas.css; aquí el botón
+   ocupa todo el ancho y ese margen lo empujaba fuera del formulario. */
+.appointment-form .btn-agendar {
+  margin: 0.9rem 0 0;
+}
+
+/* =========================================================
+   Horario de atención (24/7 y urgencias)
+   ========================================================= */
+
+.horario-atencion {
+  margin: 1.75rem 0 0;
+  padding: 1.75rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #183d3a 0%, #1a6d5d 100%);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(24, 59, 57, 0.18);
+}
+
+.horario-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Punto verde que "late" para indicar que la clínica está abierta. */
+.horario-punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #7ee2a8;
+  animation: horario-latido 1.6s ease-out infinite;
+}
+
+@keyframes horario-latido {
+  0% {
+    box-shadow: 0 0 0 0 rgba(126, 226, 168, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(126, 226, 168, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .horario-punto {
+    animation: none;
+  }
+}
+
+.horario-titulo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0 1.1rem;
+}
+
+.horario-247 {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 3px solid #f5c58b;
+  color: #f5c58b;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.horario-titulo h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.45rem;
+  text-align: left;
+}
+
+.horario-titulo p {
+  margin: 0.2rem 0 0;
+  color: #d6e8df;
+}
+
+.horario-llamar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 8px;
+  background: #d26945;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.horario-llamar:hover {
+  background: #b8532f;
+  color: #ffffff;
+}
+
+.horario-bloques {
+  list-style: none;
+  /* Solo el margen inferior: los laterales los define .row (Bootstrap). */
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.horario-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  height: 100%;
+  padding: 1.1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.horario-bloque .bi {
+  font-size: 1.5rem;
+  color: #f5c58b;
+}
+
+.horario-dias {
+  color: #7ee2a8;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.horario-bloque small {
+  color: #d6e8df;
+}
+
+@media (max-width: 600px) {
+  .horario-atencion {
+    padding: 1.25rem;
+  }
+
+  .horario-llamar {
+    width: 100%;
+    justify-content: center;
+  }
+}

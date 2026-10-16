@@ -1,0 +1,59 @@
+/* =========================================================
+   PERFIL
+   Página "Mi perfil": resumen con avatar y formulario de edición.
+   ========================================================= */
+
+.profile-page {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+.profile-page h1 {
+  color: #183d3a;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+
+.profile-card {
+  padding: 1.75rem;
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(24, 59, 57, 0.06);
+}
+
+.profile-card h2 {
+  color: #183d3a;
+  font-weight: 700;
+}
+
+.profile-card .form-label {
+  margin-bottom: 0.35rem;
+  color: #183d3a;
+  font-weight: 700;
+}
+
+.avatar-usuario {
+  background: #176b58;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.profile-data dt {
+  margin-top: 0.75rem;
+  color: #6b8178;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-data dd {
+  margin: 0.15rem 0 0;
+  color: #183d3a;
+  overflow-wrap: anywhere;
+}
+
+.profile-card button.btn-primary {
+  cursor: pointer;
+  font-family: inherit;
+}

@@ -1,0 +1,82 @@
+/* =========================================================
+   TÉRMINOS Y CONDICIONES
+   ========================================================= */
+
+.terminos-page {
+  padding: 3rem 0 4rem;
+}
+
+.terminos-indice {
+  position: sticky;
+  /* Bajo la cabecera fija del sitio. */
+  top: 7rem;
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.terminos-indice h2 {
+  color: #183b39;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.terminos-indice ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  line-height: 1.9;
+}
+
+.terminos-indice a {
+  color: #176b58;
+  text-decoration: none;
+}
+
+.terminos-indice a:hover {
+  text-decoration: underline;
+}
+
+.terminos-contenido {
+  background: #ffffff;
+  border: 1px solid #dce8df;
+  border-radius: 10px;
+  padding: 2rem;
+  color: #294b45;
+  line-height: 1.65;
+}
+
+.terminos-contenido section {
+  /* Deja espacio al saltar desde el índice. */
+  scroll-margin-top: 7rem;
+  margin-bottom: 1.75rem;
+}
+
+.terminos-contenido h2 {
+  font-size: 1.2rem;
+  color: #176b58;
+  margin: 0 0 0.6rem;
+}
+
+.terminos-fecha {
+  color: #6b8178;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 991px) {
+  .terminos-indice {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .terminos-page {
+    padding: 2rem 0 3rem;
+  }
+
+  .terminos-contenido {
+    padding: 1.25rem;
+  }
+}

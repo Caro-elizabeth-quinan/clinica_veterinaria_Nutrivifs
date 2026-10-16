@@ -1,63 +1,88 @@
 import { Route, Routes } from "react-router-dom";
+import Plantilla from "./componentes/Plantilla";
+import PlantillaAdmin from "./componentes/PlantillaAdmin";
+import Agendar from "./paginas/Agendar";
+import Blog from "./paginas/Blog";
+import Carrito from "./paginas/Carrito";
+import Consultas from "./paginas/Consultas";
+import Contacto from "./paginas/Contacto";
+import DetalleBlog from "./paginas/DetalleBlog";
+import DetalleProducto from "./paginas/DetalleProducto";
+import Inicio from "./paginas/Inicio";
+import NoEncontrada from "./paginas/NoEncontrada";
+import Perfil from "./paginas/Perfil";
+import Terminos from "./paginas/Terminos";
+import Privacidad from "./paginas/Privacidad";
+import Login from "./paginas/Login";
+import Productos from "./paginas/Productos";
+import QuienesSomos from "./paginas/QuienesSomos";
+import Registro from "./paginas/Registro";
+import AdminCategorias from "./paginas/admin/AdminCategorias";
+import AdminCitas from "./paginas/admin/AdminCitas";
+import AdminInicio from "./paginas/admin/AdminInicio";
+import AdminOrdenes from "./paginas/admin/AdminOrdenes";
+import AdminProductoForm from "./paginas/admin/AdminProductoForm";
+import AdminProductos from "./paginas/admin/AdminProductos";
+import AdminUsuarioForm from "./paginas/admin/AdminUsuarioForm";
+import AdminUsuarios from "./paginas/admin/AdminUsuarios";
 
-// Proyecto base en blanco: solo comprueba que React, TypeScript, Vite,
-// React Router, Bootstrap 5 y Bootstrap Icons están instalados y funcionando.
-// Este archivo se reemplaza al copiar el código de la tienda.
-
-interface Paquete {
-  nombre: string;
-  uso: string;
-  icono: string;
-}
-
-const PAQUETES: Paquete[] = [
-  { nombre: "react / react-dom", uso: "Componentes e interfaz", icono: "bi-filetype-jsx" },
-  { nombre: "typescript", uso: "Tipos e interfaces", icono: "bi-filetype-tsx" },
-  { nombre: "vite", uso: "Servidor de desarrollo y compilación", icono: "bi-lightning-charge-fill" },
-  { nombre: "react-router-dom", uso: "Navegación entre páginas", icono: "bi-signpost-split-fill" },
-  { nombre: "bootstrap", uso: "Grilla y diseño responsivo", icono: "bi-bootstrap-fill" },
-  { nombre: "bootstrap-icons", uso: "Íconos del sitio", icono: "bi-emoji-smile-fill" },
-  { nombre: "oxlint", uso: "Revisión de código (npm run lint)", icono: "bi-check2-circle" },
-];
-
-function Inicio() {
-  return (
-    <main className="container py-5">
-      <div className="text-center mb-5">
-        <img src="/img/logo.svg" alt="" width={64} height={64} />
-        <h1 className="mt-3 fw-bold">Clínica NutriDifs</h1>
-        <p className="lead text-secondary">
-          Proyecto base en React. Si ves esta página, todo quedó instalado.
-        </p>
-      </div>
-
-      <div className="row g-3">
-        {PAQUETES.map((paquete) => (
-          <div key={paquete.nombre} className="col-12 col-md-6 col-lg-4">
-            <div className="card h-100 shadow-sm">
-              <div className="card-body d-flex align-items-center gap-3">
-                <i className={`bi ${paquete.icono} fs-2 text-success`} aria-hidden="true" />
-                <div>
-                  <h2 className="h6 mb-1">{paquete.nombre}</h2>
-                  <p className="mb-0 text-secondary small">{paquete.uso}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <p className="text-center text-secondary mt-5 mb-0">
-        DSY1104 – 2026 · Carolina Quinan · Liza Micele · Benatha Louime
-      </p>
-    </main>
-  );
-}
-
+// Rutas de la aplicación: la tienda usa <Plantilla /> (cabecera y pie) y el
+// panel usa <PlantillaAdmin /> (menú lateral y control de acceso por rol).
+// Los formularios llevan "key" para reiniciar su estado al cambiar de modo.
 export default function App() {
   return (
     <Routes>
-      <Route path="*" element={<Inicio />} />
+      <Route element={<Plantilla />}>
+        <Route index element={<Inicio />} />
+        <Route path="productos" element={<Productos />} />
+        <Route path="productos/:codigo" element={<DetalleProducto />} />
+        <Route path="carrito" element={<Carrito />} />
+        <Route path="consultas" element={<Consultas />} />
+        <Route path="agendar" element={<Agendar />} />
+        <Route path="blog" element={<Blog />} />
+        <Route path="blog/:id" element={<DetalleBlog />} />
+        <Route path="contacto" element={<Contacto />} />
+        <Route path="quienes-somos" element={<QuienesSomos />} />
+        <Route path="login" element={<Login />} />
+        <Route path="registro" element={<Registro />} />
+        <Route path="perfil" element={<Perfil />} />
+        <Route path="terminos" element={<Terminos />} />
+        <Route path="privacidad" element={<Privacidad />} />
+        <Route path="*" element={<NoEncontrada />} />
+      </Route>
+
+      <Route path="admin" element={<PlantillaAdmin />}>
+        <Route index element={<AdminInicio />} />
+        <Route path="productos" element={<AdminProductos />} />
+        <Route
+          path="productos/nuevo"
+          element={<AdminProductoForm key="nuevo" />}
+        />
+        <Route
+          path="productos/:codigo"
+          element={<AdminProductoForm key="ver" soloLectura />}
+        />
+        <Route
+          path="productos/:codigo/editar"
+          element={<AdminProductoForm key="editar" />}
+        />
+        <Route path="categorias" element={<AdminCategorias />} />
+        <Route path="usuarios" element={<AdminUsuarios />} />
+        <Route
+          path="usuarios/nuevo"
+          element={<AdminUsuarioForm key="nuevo" />}
+        />
+        <Route
+          path="usuarios/:email"
+          element={<AdminUsuarioForm key="ver" soloLectura />}
+        />
+        <Route
+          path="usuarios/:email/editar"
+          element={<AdminUsuarioForm key="editar" />}
+        />
+        <Route path="ordenes" element={<AdminOrdenes />} />
+        <Route path="citas" element={<AdminCitas />} />
+      </Route>
     </Routes>
   );
 }
