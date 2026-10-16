@@ -106,16 +106,21 @@ export function formatearTelefono(valor: string): string {
 }
 
 // ---------------------------------------------------------
-// FECHAS
+// FECHAS Y EDAD
 // ---------------------------------------------------------
 
-export const ANIO_MAXIMO_NACIMIENTO = 2012; // Nacido este año o antes = 14+ años.
+export const ANIO_MAXIMO_NACIMIENTO = 2012; // Mantenido por compatibilidad con mensajes
 
+// Evalúa si la persona tiene 14 años o más al día de hoy de forma estricta
 export function esFechaNacimientoValida(fecha: string): boolean {
   if (!fecha) return false;
-  const nacimiento = new Date(`${fecha}T00:00:00`);
-  if (Number.isNaN(nacimiento.getTime())) return false;
-  return nacimiento.getFullYear() <= ANIO_MAXIMO_NACIMIENTO;
+  
+  const edad = calcularEdad(fecha);
+  
+  // Si la edad es menor a 14 años exactos o no se pudo calcular, es inválida
+  if (edad === null || edad < 14) return false;
+  
+  return true;
 }
 
 // Edad en años cumplidos a partir de la fecha de nacimiento (AAAA-MM-DD).
@@ -134,10 +139,9 @@ export function calcularEdad(fecha: string, hoy = new Date()): number | null {
   return edad;
 }
 
-export const MENSAJE_EDAD = `Debes haber nacido el año ${ANIO_MAXIMO_NACIMIENTO} o antes (mínimo 14 años).`;
+export const MENSAJE_EDAD = "Debes tener al menos 14 años de edad para solicitar una consulta.";
 
-// Fecha de hoy en formato AAAA-MM-DD según la hora local (no UTC: en Chile,
-// después de las 21:00, toISOString() ya devolvería el día siguiente).
+// Fecha de hoy en formato AAAA-MM-DD según la hora local de Chile
 export function fechaHoyLocal(): string {
   const hoy = new Date();
   const mes = String(hoy.getMonth() + 1).padStart(2, "0");
@@ -145,6 +149,7 @@ export function fechaHoyLocal(): string {
   return `${hoy.getFullYear()}-${mes}-${dia}`;
 }
 
+// Valida que la cita de la mascota sea para hoy o días futuros
 export function esHoyOFutura(fecha: string): boolean {
   if (!fecha) return false;
   const elegida = new Date(`${fecha}T00:00:00`);
@@ -152,4 +157,13 @@ export function esHoyOFutura(fecha: string): boolean {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   return elegida.getTime() >= hoy.getTime();
+}
+
+// Genera la fecha máxima permitida (hoy hace 14 años) para el atributo 'max' del input
+export function fechaMaximaNacimientoLocal(): string {
+  const hoy = new Date();
+  const anioLimite = hoy.getFullYear() - 14;
+  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+  const dia = String(hoy.getDate()).padStart(2, "0");
+  return `${anioLimite}-${mes}-${dia}`;
 }

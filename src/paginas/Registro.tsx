@@ -17,7 +17,7 @@ import {
   type FormularioUsuario,
 } from "../utils/reglasUsuario";
 import {
-  ANIO_MAXIMO_NACIMIENTO,
+  fechaMaximaNacimientoLocal,
   PREFIJO_TELEFONO,
   formatearTelefono,
   limpiarRun,
@@ -34,10 +34,13 @@ const CAMPOS_SELECT: (keyof FormularioUsuario)[] = [
   "genero",
 ];
 
+
+
 export default function Registro() {
   const { iniciarSesion } = useSesion();
   const navegar = useNavigate();
   const [mensaje, setMensaje] = useState("");
+  const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal);
   const formulario = useFormulario<FormularioUsuario>(USUARIO_VACIO, REGLAS);
   const { valores, errores, cambiar, tocar } = formulario;
 
@@ -148,12 +151,12 @@ export default function Registro() {
           />
           <ErrorCampo mensaje={errores.email} />
 
-          <label htmlFor="reg-birth">Fecha de nacimiento (opcional)</label>
+          <label htmlFor="reg-birth">Fecha de nacimiento</label>
           <input
             type="date"
             id="reg-birth"
             autoComplete="bday"
-            max={`${ANIO_MAXIMO_NACIMIENTO}-12-31`}
+            max={fechaMaximaNacimiento} 
             {...campo("birthDate")}
             onChange={(e) => cambiar("birthDate", e.target.value)}
           />

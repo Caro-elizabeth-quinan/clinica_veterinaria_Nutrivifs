@@ -105,9 +105,16 @@ export function crearReglasUsuario(
       }
       return "";
     },
-    // Opcional; si se informa, debe cumplir la edad mínima.
-    birthDate: (valor) =>
-      !valor || esFechaNacimientoValida(valor) ? "" : MENSAJE_EDAD,
+    
+    // Modificado para que sea estrictamente obligatorio y valide la edad mínima de 14 años
+    birthDate: (valor) => {
+      if (!valor || !valor.trim()) {
+        return "La fecha de nacimiento es obligatoria.";
+      }
+      return esFechaNacimientoValida(valor) ? "" : MENSAJE_EDAD;
+    },
+
+
     phone: (valor) =>
       !valor || valor === PREFIJO_TELEFONO || esTelefonoValido(valor)
         ? ""

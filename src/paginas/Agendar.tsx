@@ -21,6 +21,7 @@ import {
   esHoyOFutura,
   esTelefonoValido,
   fechaHoyLocal,
+  fechaMaximaNacimientoLocal,
   formatearRut,
   formatearTelefono,
   mensajeErrorRut,
@@ -175,6 +176,7 @@ export default function Agendar() {
     : undefined;
   // Fecha mínima del calendario: se calcula una sola vez al abrir la página.
   const [hoy] = useState(fechaHoyLocal);
+  const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal); 
 
   const inicial: FormularioCita = {
     nombre: perfilActual?.name ?? sesion?.name ?? "",
@@ -380,7 +382,7 @@ export default function Agendar() {
                   name="fecha-nacimiento"
                   type="date"
                   autoComplete="bday"
-                  max={`${ANIO_MAXIMO_NACIMIENTO}-12-31`}
+                  max={fechaMaximaNacimiento}
                   {...campo("fechaNacimiento")}
                   onChange={(e) => cambiar("fechaNacimiento", e.target.value)}
                 />
