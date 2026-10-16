@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import BannerPagina from "../componentes/BannerPagina";
 import HorarioAtencion from "../componentes/HorarioAtencion";
 import { CLINICA, HORARIO_RESUMEN } from "../datos/sitio";
+import { CATEGORIAS_SERVICIO } from "../datos/servicios";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
@@ -38,12 +39,14 @@ type FormularioCita = {
   motivo: string;
 };
 
-const TIPOS_CONSULTA: Record<string, string> = {
-  general: "Consulta general",
-  urgencia: "Consulta de urgencia",
-  vacunacion: "Vacunación",
-  desparasitacion: "Desparasitación",
-};
+// El formulario utiliza el mismo catálogo que la página de servicios.
+const SERVICIOS_DISPONIBLES = CATEGORIAS_SERVICIO.flatMap((categoria) =>
+  categoria.servicios.map((servicio) => ({
+    codigo: servicio.codigo,
+    nombre: servicio.nombre,
+    consulta: servicio.consulta,
+  })),
+);
 
 // Pasos que se muestran sobre el formulario.
 const PASOS = [
@@ -100,14 +103,15 @@ const REGLAS: Reglas<FormularioCita> = {
       : "Describe el motivo con al menos 20 caracteres.",
 };
 
-// El servicio elegido en Consultas llega como ?consulta= y preselecciona el tipo.
+// El servicio elegido en Consultas llega como ?consulta= y queda preseleccionado.
 function tipoDesdeConsulta(consulta: string): string {
-  const texto = consulta.toLowerCase();
-  if (texto.includes("urgencia")) return "urgencia";
-  if (/vacuna|antirrabica|felina|canina/.test(texto)) return "vacunacion";
-  if (texto.includes("desparas")) return "desparasitacion";
-  if (texto.includes("general")) return "general";
-  return "";
+  const servicio = SERVICIOS_DISPONIBLES.find(
+    (opcion) =>
+      opcion.consulta.toLowerCase() === consulta.toLowerCase() ||
+      opcion.codigo.toLowerCase() === consulta.toLowerCase() ||
+      opcion.nombre.toLowerCase() === consulta.toLowerCase(),
+  );
+  return servicio?.codigo ?? "";
 }
 
 export default function Agendar() {
@@ -154,7 +158,9 @@ export default function Agendar() {
         valores.especie === "otro"
           ? valores.otraEspecie.trim()
           : valores.especie,
-      tipoConsulta: TIPOS_CONSULTA[valores.tipoConsulta],
+      tipoConsulta:
+        SERVICIOS_DISPONIBLES.find((servicio) => servicio.codigo === valores.tipoConsulta)
+          ?.nombre ?? valores.tipoConsulta,
       fecha: valores.fecha,
       motivo: valores.motivo.trim(),
       estado: "Pendiente",
@@ -424,10 +430,14 @@ export default function Agendar() {
                   <option value="" disabled>
                     Selecciona una opción
                   </option>
-                  {Object.entries(TIPOS_CONSULTA).map(([valor, texto]) => (
-                    <option key={valor} value={valor}>
-                      {texto}
-                    </option>
+                  {CATEGORIAS_SERVICIO.map((categoria) => (
+                    <optgroup key={categoria.id} label={categoria.titulo.replace(/^\S+\s*/, "")}>
+                      {categoria.servicios.map((servicio) => (
+                        <option key={servicio.codigo} value={servicio.codigo}>
+                          {servicio.nombre}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 <ErrorCampo mensaje={errores.tipoConsulta} />
