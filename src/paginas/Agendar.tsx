@@ -116,6 +116,51 @@ function tipoDesdeConsulta(consulta: string): string {
   return servicio?.codigo ?? "";
 }
 
+// Devuelve las especies admitidas por el servicio seleccionado en el catálogo.
+function especieAutomatica(codigoServicio: string): string {
+  const servicio = SERVICIOS_DISPONIBLES.find(
+    (opcion) => opcion.codigo === codigoServicio,
+  );
+  if (!servicio) return "";
+
+  const detalle = CATEGORIAS_SERVICIO.flatMap((categoria) => categoria.servicios)
+    .find((item) => item.codigo === codigoServicio)?.especie.toLowerCase() ?? "";
+  const nombre = `${servicio.nombre} ${servicio.consulta}`.toLowerCase();
+  const texto = `${detalle} ${nombre}`;
+
+  if (texto.includes("canina") || texto.includes("canino") || texto.includes("perro")) {
+    return "Perro";
+  }
+  if (texto.includes("felina") || texto.includes("felino") || texto.includes("gato")) {
+    return "Gato";
+  }
+
+  const permitidas = especiesPermitidas(codigoServicio);
+  return permitidas.length === 1 ? permitidas[0] : "";
+}
+
+function especiesPermitidas(codigoServicio: string): string[] {
+  const servicio = SERVICIOS_DISPONIBLES.find((opcion) => opcion.codigo === codigoServicio);
+  if (!servicio) return ["Perro", "Gato", "Ave", "Conejo", "otro"];
+
+  const especie = servicio.consulta.toLowerCase();
+  // Consulta ave/conejo: no debe permitir elegir perro o gato.
+  if (especie.includes("ave / conejo") || especie.includes("ave-conejo")) {
+    return ["Ave", "Conejo"];
+  }
+
+  const detalle = CATEGORIAS_SERVICIO.flatMap((categoria) => categoria.servicios)
+    .find((item) => item.codigo === codigoServicio)?.especie.toLowerCase() ?? "";
+  if (detalle.includes("todas")) return ["Perro", "Gato", "Ave", "Conejo", "otro"];
+
+  const permitidas: string[] = [];
+  if (detalle.includes("perro") || detalle.includes("perra")) permitidas.push("Perro");
+  if (detalle.includes("gato") || detalle.includes("gata")) permitidas.push("Gato");
+  if (detalle.includes("ave")) permitidas.push("Ave");
+  if (detalle.includes("conejo")) permitidas.push("Conejo");
+  return permitidas.length ? permitidas : ["Perro", "Gato", "Ave", "Conejo", "otro"];
+}
+
 export default function Agendar() {
   const [parametros] = useSearchParams();
   const { sesion } = useSesion();
@@ -150,6 +195,7 @@ export default function Agendar() {
 
   const formulario = useFormulario<FormularioCita>(inicial, REGLAS);
   const { valores, errores, cambiar, tocar } = formulario;
+  const especiesDisponibles = especiesPermitidas(valores.tipoConsulta);
 
   const enviar = (evento: FormEvent) => {
     evento.preventDefault();
@@ -404,11 +450,11 @@ export default function Agendar() {
                   <option value="" disabled>
                     Selecciona una opción
                   </option>
-                  <option>Perro</option>
-                  <option>Gato</option>
-                  <option>Ave</option>
-                  <option>Conejo</option>
-                  <option value="otro">Otro</option>
+                  {especiesDisponibles.map((especie) => (
+                    <option key={especie} value={especie}>
+                      {especie === "otro" ? "Otro" : especie}
+                    </option>
+                  ))}
                 </select>
                 <ErrorCampo mensaje={errores.especie} />
               </div>
@@ -438,7 +484,17 @@ export default function Agendar() {
                   id="tipo-consulta"
                   name="tipo-consulta"
                   {...campo("tipoConsulta")}
-                  onChange={(e) => cambiar("tipoConsulta", e.target.value)}
+                  onChange={(e) => {
+                    const nuevoTipo = e.target.value;
+                    // Actualizar los tres campos en una sola operación evita que
+                    // una actualización basada en el estado anterior sobrescriba
+                    // el servicio recién seleccionado.
+                    formulario.reiniciarCampos({
+                      tipoConsulta: nuevoTipo,
+                      especie: especieAutomatica(nuevoTipo),
+                      otraEspecie: "",
+                    });
+                  }}
                 >
                   <option value="" disabled>
                     Selecciona una opción
