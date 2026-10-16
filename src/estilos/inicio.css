@@ -76,15 +76,15 @@
 }
 
 .avatar {
-  width: 96px;
-  height: 96px;
+  width: 140px;
+  height: 140px;
   margin: 0 auto 1.5rem;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: #1a6d5d;
   color: #ffffff;
-  font-size: 2rem;
+  font-size: 2.8rem;
   font-weight: 700;
 }
 

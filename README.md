@@ -11,7 +11,6 @@ Evaluación Parcial N.° 2 (simulación exclusivamente frontend con LocalStorage
 Requiere Node.js 20 o superior.
 
 ```bash
-cd frontend
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # revisa los tipos (tsc) y compila
