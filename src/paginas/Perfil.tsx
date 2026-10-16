@@ -11,7 +11,9 @@ import { tieneComunas } from "../utils/regiones";
 import { useSesion } from "../hooks/useSesion";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
 import { guardarPerfiles, leerPerfiles } from "../servicios/perfiles";
-import type { Perfil as PerfilUsuario } from "../tipos";
+import type { Cita, Perfil as PerfilUsuario } from "../tipos";
+import { CLAVES, leerLista } from "../servicios/almacenamiento";
+import { fechaHoyLocal } from "../utils/validaciones";
 import {
   USUARIO_VACIO,
   crearReglasUsuario,
@@ -96,6 +98,16 @@ export default function Perfil() {
   }
 
   const edad = calcularEdad(perfil.birthDate);
+  const hoy = fechaHoyLocal();
+  const correoPerfil = perfil.email.trim().toLowerCase();
+  const citasFuturas = leerLista<Cita>(CLAVES.CITAS)
+    .filter(
+      (cita) =>
+        cita.correo.trim().toLowerCase() === correoPerfil &&
+        cita.estado === "Confirmada" &&
+        cita.fecha >= hoy,
+    )
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
 
   const enviar = (evento: FormEvent) => {
     evento.preventDefault();
@@ -343,9 +355,41 @@ export default function Perfil() {
           </form>
         </section>
       </div>
+
+      {/* Citas confirmadas asociadas al correo de la cuenta. */}
+      <section className="profile-appointments mt-5" aria-labelledby="citas-perfil-titulo">
+        <span className="admin-eyebrow">AGENDA</span>
+        <h2 id="citas-perfil-titulo" className="h4 mt-2 mb-3">Mis próximas citas</h2>
+        {citasFuturas.length === 0 ? (
+          <p className="profile-appointments-empty">
+            No tienes citas futuras confirmadas por ahora. Cuando el equipo de
+            la veterinaria confirme una solicitud, aparecerá aquí.
+          </p>
+        ) : (
+          <div className="profile-appointments-list">
+            {citasFuturas.map((cita) => (
+              <article className="profile-appointment" key={cita.id}>
+                <div className="profile-appointment-date" aria-label={`Fecha: ${cita.fecha}`}>
+                  <span>{cita.fecha.split("-")[2]}</span>
+                  <small>{cita.fecha.split("-")[1]}/{cita.fecha.split("-")[0]}</small>
+                </div>
+                <div className="profile-appointment-info">
+                  <h3>{cita.tipoConsulta}</h3>
+                  <p>
+                    <strong>Mascota:</strong> {cita.mascota} · {cita.especie}
+                  </p>
+                  {cita.motivo && (
+                    <p>
+                      <strong>Motivo:</strong> {cita.motivo}
+                    </p>
+                  )}
+                </div>
+                <span className="profile-appointment-status">Confirmada</span>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
-
-
-// prueba primer commit rama
