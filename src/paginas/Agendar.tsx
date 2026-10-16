@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent,
+        useEffect, useRef,
+        } from "react";
 import { useSearchParams } from "react-router-dom";
 import BannerPagina from "../componentes/BannerPagina";
 import HorarioAtencion from "../componentes/HorarioAtencion";
@@ -12,7 +14,6 @@ import { leerPerfiles } from "../servicios/perfiles";
 import { useSesion } from "../hooks/useSesion";
 import type { Cita } from "../tipos";
 import {
-  ANIO_MAXIMO_NACIMIENTO,
   CORREO_AGENDAMIENTO_REGEX,
   MENSAJE_EDAD,
   MENSAJE_TELEFONO,
@@ -178,6 +179,14 @@ export default function Agendar() {
   const [hoy] = useState(fechaHoyLocal);
   const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal); 
 
+  const formularioRef = useRef<HTMLFormElement>(null);
+
+   useEffect(() => {
+    if (formularioRef.current) {
+      formularioRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []); 
+
   const inicial: FormularioCita = {
     nombre: perfilActual?.name ?? sesion?.name ?? "",
     apellido: perfilActual?.apellido ?? sesion?.apellido ?? "",
@@ -316,6 +325,7 @@ export default function Agendar() {
             </aside>
 
             <form
+              ref={formularioRef} 
               className="appointment-form"
               id="appointment-form"
               noValidate
