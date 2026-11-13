@@ -2,6 +2,7 @@ import { CUENTAS_INICIALES, EQUIPO_INICIAL } from "../datos/cuentas";
 import { CATEGORIAS_INICIALES, PRODUCTOS_BASE } from "../datos/productos";
 import type { Perfil } from "../tipos";
 
+
 // Claves de localStorage. Son las mismas del sitio HTML, así que los datos
 // guardados sirven para las dos versiones.
 export const CLAVES = {

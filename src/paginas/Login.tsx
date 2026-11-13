@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useSesion } from "../hooks/useSesion";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
-import { guardarPerfiles, leerPerfiles } from "../servicios/perfiles";
+import { loginApi } from "../servicios/auth";
 import { destinoSegunRol } from "../utils/roles";
 import {
   MENSAJE_DOMINIOS,
@@ -32,70 +33,53 @@ const REGLAS: Reglas<FormularioLogin> = {
   },
 };
 
-const CUENTA_BLOQUEADA =
-  "Cuenta bloqueada por 3 intentos fallidos. Contacta a soporte para restablecerla.";
-
 export default function Login() {
   const { iniciarSesion } = useSesion();
   const navegar = useNavigate();
   const [parametros] = useSearchParams();
   const [mensaje, setMensaje] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const formulario = useFormulario<FormularioLogin>(
     { email: "", password: "" },
     REGLAS,
   );
   const { valores, errores } = formulario;
 
-  const enviar = (evento: FormEvent) => {
+  // Valida en el front y luego autentica contra el backend (POST /auth/login).
+  // El backend revisa la contraseña con BCrypt, cuenta los intentos fallidos
+  // y bloquea la cuenta al tercero; si todo está bien devuelve el JWT.
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     setMensaje("");
     if (!formulario.validarTodo()) return;
 
-    const email = normalizarEmail(valores.email);
-    const perfiles = leerPerfiles();
-    const perfil = perfiles.find((item) => item.email === email);
-
-    if (!perfil) {
-      formulario.fijarError(
-        "email",
-        "No existe una cuenta registrada con este correo.",
+    setEnviando(true);
+    try {
+      const perfil = await loginApi(
+        normalizarEmail(valores.email),
+        valores.password,
       );
-      return;
-    }
+      iniciarSesion(perfil);
+      setMensaje("Sesión iniciada correctamente.");
 
-    if (perfil.locked) {
-      formulario.fijarError("password", CUENTA_BLOQUEADA);
-      return;
-    }
-
-    if (perfil.password !== valores.password) {
-      perfil.failedAttempts = (perfil.failedAttempts || 0) + 1;
-      // Después del tercer intento fallido la cuenta queda bloqueada.
-      if (perfil.failedAttempts >= 3) perfil.locked = true;
-      guardarPerfiles(perfiles);
-
-      formulario.fijarError(
-        "password",
-        perfil.locked
-          ? CUENTA_BLOQUEADA
-          : "La contraseña no coincide con esta cuenta.",
+      // Administrador y Vendedor entran al panel; el Cliente vuelve a la tienda
+      // (o al carrito, si venía de intentar pagar).
+      const rol = perfil.role || "Cliente";
+      navegar(
+        rol === "Cliente" && parametros.get("volver") === "carrito"
+          ? "/carrito"
+          : destinoSegunRol(rol),
       );
-      return;
+    } catch (error) {
+      // 401: correo/contraseña incorrectos o cuenta bloqueada (mensaje del backend)
+      const texto = axios.isAxiosError(error)
+        ? (error.response?.data?.mensaje ??
+          "No se pudo conectar con el servidor.")
+        : "Error inesperado.";
+      formulario.fijarError("password", texto);
+    } finally {
+      setEnviando(false);
     }
-
-    perfil.failedAttempts = 0;
-    guardarPerfiles(perfiles);
-    iniciarSesion(perfil);
-    setMensaje("Sesión iniciada correctamente.");
-
-    // Administrador y Vendedor entran al panel; el Cliente vuelve a la tienda
-    // (o al carrito, si venía de intentar pagar).
-    const rol = perfil.role || "Cliente";
-    navegar(
-      rol === "Cliente" && parametros.get("volver") === "carrito"
-        ? "/carrito"
-        : destinoSegunRol(rol),
-    );
   };
 
   return (
@@ -164,8 +148,8 @@ export default function Login() {
           >
             {mensaje}
           </p>
-          <button className="auth-button" type="submit">
-            Iniciar sesión
+          <button className="auth-button" type="submit" disabled={enviando}>
+            {enviando ? "Ingresando..." : "Iniciar sesión"}
           </button>
         </form>
         <nav className="auth-links" aria-label="Opciones de acceso">

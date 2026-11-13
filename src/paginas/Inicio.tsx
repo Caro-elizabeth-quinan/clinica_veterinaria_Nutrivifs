@@ -22,7 +22,7 @@ const SERVICIOS_DOMICILIO = [
 ];
 
 export default function Inicio() {
-  const destacados = obtenerProductos().slice(0, 8);
+  const destacados = obtenerProductos().slice(0, 6);
   const equipo = leerLista<IntegranteEquipo>(CLAVES.EQUIPO).filter(
     (integrante) => integrante.status !== "Inactivo",
   );

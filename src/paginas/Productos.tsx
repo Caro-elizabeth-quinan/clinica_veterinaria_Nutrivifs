@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BannerPagina from "../componentes/BannerPagina";
 import TarjetaProducto from "../componentes/TarjetaProducto";
-import { nombresCategorias } from "../servicios/categorias";
-import { obtenerProductos } from "../servicios/catalogo";
+import { obtenerCategoriasApi } from "../servicios/categorias";
+import { obtenerProductosApi } from "../servicios/catalogo";
+import type { Producto } from "../tipos";
 
 const RANGOS_PRECIO = [
   { valor: "todos", texto: "Todos los precios", min: 0, max: Infinity },
@@ -16,10 +17,34 @@ const RANGOS_PRECIO = [
 export default function Productos() {
   const [categoria, setCategoria] = useState("todos");
   const [rango, setRango] = useState("todos");
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+
+  // Carga productos y categorías desde el backend al abrir la página
+  useEffect(() => {
+    async function cargarDatos() {
+      try {
+        const [prods, cats] = await Promise.all([
+          obtenerProductosApi(),
+          obtenerCategoriasApi(),
+        ]);
+        setProductos(prods);
+        setCategorias(cats.map((c) => c.nombre));
+      } catch (e) {
+        console.error("Error al cargar productos:", e);
+        setError("No se pudo conectar con el servidor.");
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargarDatos();
+  }, []);
 
   const limites = RANGOS_PRECIO.find((item) => item.valor === rango)!;
 
-  const visibles = obtenerProductos().filter(
+  const visibles = productos.filter(
     (producto) =>
       (categoria === "todos" || producto.category === categoria) &&
       producto.price >= limites.min &&
@@ -44,7 +69,7 @@ export default function Productos() {
           <h2>Filtrar por Categoría</h2>
 
           <div className="filter-buttons">
-            {["todos", ...nombresCategorias()].map((opcion) => (
+            {["todos", ...categorias].map((opcion) => (
               <button
                 key={opcion}
                 type="button"
@@ -86,22 +111,35 @@ export default function Productos() {
             </p>
           </div>
 
-          {/* Grilla Bootstrap: 1 columna en móvil, 2 en tablet y 3 en escritorio. */}
-          <div
-            className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4"
-            id="products-grid"
-          >
-            {visibles.map((producto) => (
-              <div className="col" key={producto.id}>
-                <TarjetaProducto producto={producto} />
-              </div>
-            ))}
-          </div>
+                   {cargando && (
+            <div className="d-flex justify-content-center align-items-center gap-3 py-4" role="status">
+              <div className="spinner-border text-primary" aria-hidden="true" />
+              <span>Cargando productos...</span>
+            </div>
+          )}
 
-          {visibles.length === 0 && (
-            <p className="alert alert-info mt-3">
-              No hay productos que coincidan con los filtros elegidos.
-            </p>
+          {error && <p className="alert alert-danger mt-3">{error}</p>}
+
+          {!cargando && !error && (
+            <>
+              {/* Grilla Bootstrap: 1 columna en móvil, 2 en tablet y 3 en escritorio. */}
+              <div
+                className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4"
+                id="products-grid"
+              >
+                {visibles.map((producto) => (
+                  <div className="col" key={producto.id}>
+                    <TarjetaProducto producto={producto} />
+                  </div>
+                ))}
+              </div>
+
+              {visibles.length === 0 && (
+                <p className="alert alert-info mt-3">
+                  No hay productos que coincidan con los filtros elegidos.
+                </p>
+              )}
+            </>
           )}
         </div>
 
