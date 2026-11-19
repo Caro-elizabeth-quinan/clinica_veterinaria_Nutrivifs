@@ -1,225 +1,186 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
-import ErrorCampo from "../componentes/ErrorCampo";
-import { claseCampo } from "../utils/claseCampo";
-import Estrellas from "../componentes/Estrellas";
-import ResenasProducto from "../componentes/ResenasProducto";
-import ResumenProducto from "../componentes/ResumenProducto";
-import TarjetaProducto from "../componentes/TarjetaProducto";
-import { useCarrito } from "../hooks/useCarrito";
-import { IMAGEN_POR_DEFECTO } from "../datos/productos";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import PreguntasFrecuentes from "../componentes/PreguntasFrecuentes";
+import TarjetaDestacada from "../componentes/TarjetaDestacada";
+import { CLAVES, leerLista } from "../servicios/almacenamiento";
 import { obtenerProductosApi } from "../servicios/catalogo";
-import { promedio, resenasDeProducto } from "../servicios/resenas";
-import { formatearPrecio } from "../utils/formato";
-import type { Producto } from "../tipos";
+import type { IntegranteEquipo, Producto } from "../tipos";
+import { iniciales } from "../utils/formato";
 
-// Detalle de un producto (/productos/ME001). La "key" hace que React cree la
-// ficha de nuevo al pasar a otro producto (por ejemplo desde "Productos
-// relacionados"), así la cantidad y los mensajes no quedan del anterior.
-export default function DetalleProducto() {
-  const { codigo = "" } = useParams();
-  return <FichaProducto key={codigo} codigo={codigo} />;
-}
+const BENEFICIOS = [
+  { icono: "🐾", texto: "Atención profesional para tu mascota" },
+  { icono: "💊", texto: "Medicamentos y vacunas certificadas" },
+  { icono: "🛡️", texto: "Equipamiento moderno y seguro" },
+  { icono: "🏠", texto: "Atención a domicilio" },
+  { icono: "🔒", texto: "Compra segura" },
+];
 
-// Datos del producto, cantidad a agregar, reseñas y productos relacionados.
-function FichaProducto({ codigo }: { codigo: string }) {
-  const { cantidadDe, agregar } = useCarrito();
-  const [cantidad, setCantidad] = useState("1");
-  const [error, setError] = useState("");
-  const [agregadas, setAgregadas] = useState(0);
-  // Estado "levantado": lo usan el resumen junto al título y la sección
-  // de reseñas, que lo actualiza al publicar o eliminar.
-  const [resenas, setResenas] = useState(() => resenasDeProducto(codigo));
+const SERVICIOS_DOMICILIO = [
+  "Consulta veterinaria a domicilio",
+  "Toma de muestras",
+  "Aplicación de medicamentos",
+  "Atención personalizada para tu mascota",
+];
 
-  // Productos desde el backend (GET /productos)
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [errorCarga, setErrorCarga] = useState("");
+export default function Inicio() {
+  // Productos destacados desde el backend (los 6 primeros de GET /productos)
+  const [destacados, setDestacados] = useState<Producto[]>([]);
 
   useEffect(() => {
-    async function cargar() {
-      try {
-        setProductos(await obtenerProductosApi());
-      } catch (e) {
-        console.error("Error al cargar el producto:", e);
-        setErrorCarga("No se pudo conectar con el servidor.");
-      } finally {
-        setCargando(false);
-      }
-    }
-    cargar();
+    obtenerProductosApi()
+      .then((productos) => setDestacados(productos.slice(0, 6)))
+      .catch((e) => console.error("Error al cargar destacados:", e));
   }, []);
 
-  if (cargando) {
-    return (
-      <main>
-        <section className="container product-detail-page">
-          <div className="d-flex align-items-center gap-3 py-5" role="status">
-            <div className="spinner-border text-primary" aria-hidden="true" />
-            <span>Cargando producto...</span>
-          </div>
-        </section>
-      </main>
-    );
-  }
-
-  const producto = productos.find((item) => item.id === codigo);
-
-  if (errorCarga || !producto) {
-    return (
-      <main>
-        <section className="container product-detail-page">
-          <p className="detail-not-found">
-            {errorCarga || "No encontramos el producto solicitado."}{" "}
-            <Link to="/productos">Volver al catálogo</Link>
-          </p>
-        </section>
-      </main>
-    );
-  }
-
-  const stock = Number(producto.stock) || 0;
-  const enCarrito = cantidadDe(producto.id);
-  const disponible = stock - enCarrito;
-
-  const validar = (valor: string): string => {
-    if (!/^\d+$/.test(valor.trim()) || Number(valor) < 1) {
-      return "Ingresa una cantidad entera mayor o igual a 1.";
-    }
-    if (Number(valor) > disponible) {
-      return `Solo puedes agregar ${disponible} unidad${disponible === 1 ? "" : "es"} más.`;
-    }
-    return "";
-  };
-
-  const cambiar = (valor: string) => {
-    setCantidad(valor);
-    setError(validar(valor));
-    setAgregadas(0);
-  };
-
-  const enviar = (evento: FormEvent) => {
-    evento.preventDefault();
-    const mensaje = validar(cantidad);
-    setError(mensaje);
-    if (mensaje) return;
-
-    if (agregar(producto.id, Number(cantidad))) {
-      setAgregadas(Number(cantidad));
-      setCantidad("1");
-    }
-  };
-
-  const relacionados = [
-    ...productos.filter(
-      (item) => item.category === producto.category && item.id !== producto.id,
-    ),
-    ...productos.filter((item) => item.category !== producto.category),
-  ].slice(0, 4);
+  const equipo = leerLista<IntegranteEquipo>(CLAVES.EQUIPO).filter(
+    (integrante) => integrante.status !== "Inactivo",
+  );
 
   return (
     <main>
-      <section className="container product-detail-page">
-        <nav className="breadcrumb" aria-label="Ruta de navegación">
-          <Link to="/">Inicio</Link> › <Link to="/productos">Productos</Link> ›{" "}
-          <span>{producto.name}</span>
-        </nav>
+      <section className="home-hero" aria-labelledby="hero-title">
+        <div className="container home-hero-content">
+          <div className="home-hero-text">
+            <span className="home-hero-kicker">
+              Bienvenidos a Clínica NutriDifs
+            </span>
 
-        <article className="product-detail">
-          <div className="product-detail-image">
+            <h1 id="hero-title">
+              Todo lo que tu mascota <em>merece</em>
+            </h1>
+
+            <p>
+              Atención veterinaria, medicamentos, vacunas y suplementos para
+              perros y gatos. Porque su salud también es la nuestra.
+            </p>
+
+            <div className="hero-buttons">
+              <Link to="/productos" className="btn-primary">
+                Ver productos &rarr;
+              </Link>
+              <Link to="/consultas" className="btn-secondary">
+                Agenda tu hora
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <ul className="container home-hero-features">
+          {BENEFICIOS.map((beneficio) => (
+            <li key={beneficio.texto}>
+              <span className="benefit-icon" aria-hidden="true">
+                {beneficio.icono}
+              </span>
+              {beneficio.texto}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="featured-products">
+        <div className="container">
+          <div className="products-heading">
+            <div>
+              <span> TIENDA VETERINARIA </span>
+              <h2>Productos destacados</h2>
+            </div>
+            <Link to="/productos" className="btn-ver-todos">
+              Ver todos los productos
+              <i className="bi bi-arrow-right" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4">
+            {destacados.map((producto) => (
+              <div className="col" key={producto.id}>
+                <TarjetaDestacada producto={producto} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="container home-banner" aria-labelledby="banner-title">
+        <div className="home-banner-text">
+          <h2 id="banner-title">Mascotas felices, familias más felices</h2>
+          <Link to="/quienes-somos" className="home-banner-link">
+            Conoce más &rarr;
+          </Link>
+        </div>
+      </section>
+
+      <section className="home-care">
+        <div className="container home-care-content">
+          <div className="home-care-image">
             <img
-              src={producto.image || IMAGEN_POR_DEFECTO}
-              alt={producto.name}
+              src="/img/procedimiento.jpg"
+              alt="Veterinario realizando atención a domicilio"
             />
           </div>
 
-          <div className="product-detail-info">
-            <span className="product-category">{producto.category}</span>
-            <div className="product-detail-heading">
-              <h1>{producto.name}</h1>
-              <strong className="detail-price">
-                {formatearPrecio(producto.price)}
-              </strong>
-            </div>
-            <a className="detail-rating" href="#resenas-titulo">
-              <Estrellas valor={promedio(resenas)} />
-              {resenas.length
-                ? `${promedio(resenas).toFixed(1)} · ${resenas.length} reseña${resenas.length === 1 ? "" : "s"}`
-                : "Sin reseñas aún"}
-            </a>
-            <p className="detail-description">
-              {producto.description || "Producto veterinario de la clínica."}
+          <div className="home-care-text">
+            <span className="home-care-label"> ATENCIÓN A DOMICILIO </span>
+
+            <h2>La atención que tu mascota necesita, sin salir de casa</h2>
+
+            <p>
+              Sabemos que trasladar a tu mascota puede ser estresante. Por eso,
+              llevamos nuestros servicios veterinarios hasta tu hogar,
+              entregando una atención cómoda, segura y personalizada.
             </p>
-            <ul className="detail-data">
-              <li>
-                <strong>Código:</strong> {producto.id}
-              </li>
-              {producto.species && (
-                <li>
-                  <strong>Especie:</strong> {producto.species}
+
+            <ul className="custom-list">
+              {SERVICIOS_DOMICILIO.map((servicio) => (
+                <li key={servicio}>
+                  <span>✓</span>
+                  {servicio}
                 </li>
-              )}
+              ))}
             </ul>
-            <p
-              className={`detail-stock${disponible <= 0 ? " out-of-stock" : ""}`}
-            >
-              {stock <= 0
-                ? "Sin stock disponible"
-                : `Stock disponible: ${stock} unidades${enCarrito ? ` (${enCarrito} en tu carrito)` : ""}`}
-            </p>
 
-            <form className="detail-add-form" noValidate onSubmit={enviar}>
-              <div className="campo-formulario">
-                <label htmlFor="detail-quantity">Cantidad</label>
-                <input
-                  type="number"
-                  id="detail-quantity"
-                  name="cantidad"
-                  min={1}
-                  step={1}
-                  inputMode="numeric"
-                  className={claseCampo(error)}
-                  value={cantidad}
-                  onChange={(evento) => cambiar(evento.target.value)}
-                />
-                <ErrorCampo mensaje={error} />
-              </div>
-              <button
-                type="submit"
-                className="add-cart-button"
-                disabled={disponible <= 0}
-              >
-                Añadir al carrito
-              </button>
-              <p className="detail-message" role="status" aria-live="polite">
-                {agregadas > 0 && (
-                  <>
-                    Agregaste {agregadas} unidad{agregadas === 1 ? "" : "es"} al
-                    carrito. <Link to="/carrito">Ver carrito</Link>
-                  </>
-                )}
-              </p>
-            </form>
+            <Link to="/contacto" className="btn-primary">
+              Solicitar atención
+            </Link>
           </div>
-        </article>
+        </div>
+      </section>
 
-        <ResumenProducto producto={producto} />
+      <section className="home-users" aria-labelledby="home-users-title">
+        <div className="container">
+          <div className="home-users-heading">
+            <span> EL EQUIPO </span>
+            <h2 id="home-users-title">
+              Personas que hacen posible nuestra atención
+            </h2>
+            <p>Conoce a los integrantes activos de Clínica NutriDifs.</p>
+          </div>
 
-        <ResenasProducto
-          productoId={producto.id}
-          resenas={resenas}
-          alCambiar={setResenas}
-        />
-
-        <section className="related-products" aria-labelledby="related-title">
-          <h2 id="related-title">Productos relacionados</h2>
-          <div className="products-grid">
-            {relacionados.map((item) => (
-              <TarjetaProducto key={item.id} producto={item} />
+          <div className="home-users-grid row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4 justify-content-center">
+            {equipo.map((integrante) => (
+              <div className="col" key={integrante.id}>
+                <article className="team-card h-100">
+                  {integrante.foto ? (
+                    <img
+                      className="avatar avatar-foto"
+                      src={integrante.foto}
+                      alt={`Foto de ${integrante.name}`}
+                    />
+                  ) : (
+                    <div className="avatar" aria-hidden="true">
+                      {iniciales(integrante.name)}
+                    </div>
+                  )}
+                  <h3>{integrante.name}</h3>
+                  <p className="role">{integrante.role || "Equipo clínico"}</p>
+                  <p className="email">{integrante.email}</p>
+                </article>
+              </div>
             ))}
           </div>
-        </section>
+        </div>
       </section>
+
+      <PreguntasFrecuentes />
     </main>
   );
 }

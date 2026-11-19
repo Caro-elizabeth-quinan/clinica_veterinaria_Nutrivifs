@@ -9,6 +9,7 @@ import Contacto from "./paginas/Contacto";
 import DetalleBlog from "./paginas/DetalleBlog";
 import DetalleProducto from "./paginas/DetalleProducto";
 import Inicio from "./paginas/Inicio";
+import MisCompras from "./paginas/MisCompras";
 import NoEncontrada from "./paginas/NoEncontrada";
 import Perfil from "./paginas/Perfil";
 import Terminos from "./paginas/Terminos";
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="login" element={<Login />} />
         <Route path="registro" element={<Registro />} />
         <Route path="perfil" element={<Perfil />} />
+        <Route path="mis-compras" element={<MisCompras />} />
         <Route path="terminos" element={<Terminos />} />
         <Route path="privacidad" element={<Privacidad />} />
         <Route path="*" element={<NoEncontrada />} />

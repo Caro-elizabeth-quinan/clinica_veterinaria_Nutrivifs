@@ -79,6 +79,13 @@ export default function Encabezado() {
                   >
                     Mi perfil
                   </Link>
+                  <Link
+                    className="profile-link"
+                    to="/mis-compras"
+                    onClick={cerrarMenu}
+                  >
+                    Mis compras
+                  </Link>
                   {sesion.role !== "Cliente" && (
                     <Link
                       className="profile-link"
