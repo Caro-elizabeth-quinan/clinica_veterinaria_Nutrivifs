@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useCarrito } from "../hooks/useCarrito";
 import { useSesion } from "../hooks/useSesion";
 import { IMAGEN_POR_DEFECTO } from "../datos/productos";
-import { buscarProducto, rutaDetalleProducto } from "../servicios/catalogo";
+import { rutaDetalleProducto } from "../servicios/catalogo";
 import { formatearMoneda, formatearPrecio } from "../utils/formato";
 
 // Aviso que se muestra sobre la página; con "alConfirmar" pide confirmación.
@@ -24,6 +25,7 @@ export default function Carrito() {
   const [errorCupon, setErrorCupon] = useState("");
   const [mensajeCupon, setMensajeCupon] = useState("");
   const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [pagando, setPagando] = useState(false);
 
   const vacio = carrito.items.length === 0;
 
@@ -39,6 +41,26 @@ export default function Carrito() {
     } else {
       setErrorCupon("");
       setMensajeCupon(`Cupón ${codigo} aplicado: 10% de descuento.`);
+    }
+  };
+
+  // Envía la compra al backend y muestra el número de orden o el error que devuelva
+  const confirmarPago = async () => {
+    setPagando(true);
+    try {
+      const orden = await carrito.pagar();
+      setAviso({
+        mensaje: `Compra realizada con éxito. Tu número de orden es ${orden.id}.`,
+      });
+    } catch (error) {
+      // 400: sin stock o cupón inválido · 401: sesión vencida
+      const texto = axios.isAxiosError(error)
+        ? (error.response?.data?.mensaje ??
+          "No se pudo conectar con el servidor.")
+        : "Error inesperado.";
+      setAviso({ mensaje: texto });
+    } finally {
+      setPagando(false);
     }
   };
 
@@ -58,12 +80,7 @@ export default function Carrito() {
 
     setAviso({
       mensaje: `El total de tu compra es ${formatearMoneda(carrito.total)}. ¿Deseas continuar con el pago?`,
-      alConfirmar: () => {
-        const orden = carrito.pagar(sesion);
-        setAviso({
-          mensaje: `Compra realizada con éxito. Tu número de orden es ${orden.id}.`,
-        });
-      },
+      alConfirmar: confirmarPago,
     });
   };
 
@@ -92,7 +109,7 @@ export default function Carrito() {
 
             <div className="cart-page-items">
               {carrito.items.map((item) => {
-                const producto = buscarProducto(item.code);
+                const producto = carrito.productoDe(item.code);
                 const enLimite =
                   item.quantity >= (Number(producto?.stock) || 0);
 
@@ -198,8 +215,13 @@ export default function Carrito() {
                   </p>
                 </form>
 
-                <button type="button" className="btn-primary" onClick={pagar}>
-                  Pagar
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={pagar}
+                  disabled={pagando}
+                >
+                  {pagando ? "Procesando..." : "Pagar"}
                 </button>
                 <button
                   type="button"
@@ -227,6 +249,7 @@ export default function Carrito() {
                       type="button"
                       className="btn-primary"
                       onClick={aviso.alConfirmar}
+                      disabled={pagando}
                     >
                       Continuar
                     </button>

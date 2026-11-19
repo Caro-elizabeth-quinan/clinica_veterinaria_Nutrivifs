@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
+import axios from "axios";
 import AvatarUsuario from "../componentes/AvatarUsuario";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
@@ -10,10 +11,14 @@ import {
 import { tieneComunas } from "../utils/regiones";
 import { useSesion } from "../hooks/useSesion";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
-import { guardarPerfiles, leerPerfiles } from "../servicios/perfiles";
-import type { Cita, Perfil as PerfilUsuario } from "../tipos";
+import {
+  actualizarMiPerfilApi,
+  obtenerMiPerfilApi,
+} from "../servicios/usuarios";
+import { misComprasApi } from "../servicios/boleta";
+import type { Cita, Orden, Perfil as PerfilUsuario } from "../tipos";
 import { CLAVES, leerLista } from "../servicios/almacenamiento";
-import { fechaHoyLocal } from "../utils/validaciones";
+import { formatearMoneda } from "../utils/formato";
 import {
   USUARIO_VACIO,
   crearReglasUsuario,
@@ -23,16 +28,15 @@ import {
   ANIO_MAXIMO_NACIMIENTO,
   PREFIJO_TELEFONO,
   calcularEdad,
+  fechaHoyLocal,
   formatearTelefono,
-  normalizarEmail,
 } from "../utils/validaciones";
 
-// Campos que el usuario puede editar de su propio perfil. El rol, el RUN y
-// la contraseña no se modifican aquí.
+// Campos que el usuario puede editar de su propio perfil. El rol, el RUN,
+// el correo y la contraseña no se modifican aquí.
 type CampoPerfil =
   | "name"
   | "apellido"
-  | "email"
   | "birthDate"
   | "phone"
   | "region"
@@ -41,21 +45,18 @@ type CampoPerfil =
 
 const CAMPOS_SELECT: CampoPerfil[] = ["region", "comuna"];
 
-function crearReglasPerfil(emailActual: string): Reglas<FormularioUsuario> {
-  const reglas = crearReglasUsuario({ emailActual });
-  return {
-    name: reglas.name,
-    apellido: reglas.apellido,
-    email: reglas.email,
-    birthDate: reglas.birthDate,
-    phone: reglas.phone,
-    region: reglas.region,
-    comuna: reglas.comuna,
-    direccion: reglas.direccion,
-  };
-}
+const reglasBase = crearReglasUsuario();
+const REGLAS_PERFIL: Reglas<FormularioUsuario> = {
+  name: reglasBase.name,
+  apellido: reglasBase.apellido,
+  birthDate: reglasBase.birthDate,
+  phone: reglasBase.phone,
+  region: reglasBase.region,
+  comuna: reglasBase.comuna,
+  direccion: reglasBase.direccion,
+};
 
-function valoresDesde(perfil?: PerfilUsuario): FormularioUsuario {
+function valoresDesde(perfil?: PerfilUsuario | null): FormularioUsuario {
   if (!perfil) return USUARIO_VACIO;
   return {
     ...USUARIO_VACIO,
@@ -70,28 +71,69 @@ function valoresDesde(perfil?: PerfilUsuario): FormularioUsuario {
   };
 }
 
+function mensajeDeError(error: unknown): string {
+  return axios.isAxiosError(error)
+    ? (error.response?.data?.mensaje ?? "No se pudo conectar con el servidor.")
+    : "Error inesperado.";
+}
+
 // Perfil personal: disponible para Administrador, Vendedor y Cliente.
 export default function Perfil() {
   const { sesion, iniciarSesion } = useSesion();
-  const [perfil, setPerfil] = useState(() =>
-    leerPerfiles().find((item) => item.email === sesion?.email),
-  );
+  const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
+  const [compras, setCompras] = useState<Orden[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [exito, setExito] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   const formulario = useFormulario<FormularioUsuario>(
-    valoresDesde(perfil),
-    crearReglasPerfil(perfil?.email ?? ""),
+    USUARIO_VACIO,
+    REGLAS_PERFIL,
   );
   const { valores, errores, cambiar, tocar } = formulario;
 
+  // Carga el perfil (GET /auth/me) y las compras (GET /boletas/mias) desde el backend
+  useEffect(() => {
+    if (!sesion) return;
+    async function cargar() {
+      try {
+        const [datos, misCompras] = await Promise.all([
+          obtenerMiPerfilApi(),
+          misComprasApi(),
+        ]);
+        setPerfil(datos);
+        setCompras(misCompras);
+        formulario.reiniciarCampos(valoresDesde(datos));
+      } catch (error) {
+        setErrorCarga(mensajeDeError(error));
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sesion?.email]);
+
   if (!sesion) return <Navigate to="/login" replace />;
+
+  if (cargando) {
+    return (
+      <main className="container profile-page">
+        <div className="d-flex align-items-center gap-3 py-5" role="status">
+          <div className="spinner-border text-primary" aria-hidden="true" />
+          <span>Cargando tu perfil...</span>
+        </div>
+      </main>
+    );
+  }
 
   if (!perfil) {
     return (
       <main className="container profile-page">
         <p className="alert alert-warning">
-          No se encontró la información de tu cuenta.
+          {errorCarga || "No se encontró la información de tu cuenta."}
         </p>
       </main>
     );
@@ -109,7 +151,8 @@ export default function Perfil() {
     )
     .sort((a, b) => a.fecha.localeCompare(b.fecha));
 
-  const enviar = (evento: FormEvent) => {
+  // Guarda los cambios en el backend (PUT /usuarios/me)
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     setExito(false);
 
@@ -118,28 +161,28 @@ export default function Perfil() {
       return;
     }
 
-    // Se conservan los datos que no se editan aquí (rol, RUN, contraseña…).
-    const actualizado: PerfilUsuario = {
-      ...perfil,
-      name: valores.name.trim(),
-      apellido: valores.apellido.trim(),
-      email: normalizarEmail(valores.email),
-      birthDate: valores.birthDate,
-      phone: valores.phone === PREFIJO_TELEFONO ? "" : valores.phone,
-      region: valores.region,
-      comuna: valores.comuna,
-      direccion: valores.direccion.trim(),
-    };
-
-    guardarPerfiles(
-      leerPerfiles().map((item) =>
-        item.email === perfil.email ? actualizado : item,
-      ),
-    );
-    iniciarSesion(actualizado);
-    setPerfil(actualizado);
-    setExito(true);
-    setMensaje("Tus datos se guardaron correctamente.");
+    setGuardando(true);
+    try {
+      const actualizado = await actualizarMiPerfilApi({
+        run: perfil.run || "",
+        name: valores.name.trim(),
+        apellido: valores.apellido.trim(),
+        email: perfil.email,
+        birthDate: valores.birthDate || null,
+        direccion: valores.direccion.trim(),
+        region: valores.region,
+        comuna: valores.comuna,
+        phone: valores.phone === PREFIJO_TELEFONO ? "" : valores.phone,
+      });
+      setPerfil(actualizado);
+      iniciarSesion(actualizado); // actualiza el nombre en el encabezado
+      setExito(true);
+      setMensaje("Tus datos se guardaron correctamente.");
+    } catch (error) {
+      setMensaje(mensajeDeError(error));
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const campo = (nombre: CampoPerfil) => ({
@@ -233,14 +276,15 @@ export default function Perfil() {
                   Correo electrónico
                 </label>
                 <input
+                  id="perfil-email"
                   type="text"
-                  inputMode="email"
-                  maxLength={100}
-                  autoComplete="email"
-                  {...campo("email")}
-                  onChange={(e) => cambiar("email", e.target.value)}
+                  className="form-control"
+                  value={perfil.email}
+                  disabled
                 />
-                <ErrorCampo mensaje={errores.email} />
+                <small className="campo-ayuda">
+                  El correo identifica tu cuenta y no se puede modificar.
+                </small>
               </div>
 
               <div className="col-md-6">
@@ -340,8 +384,12 @@ export default function Perfil() {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary mt-4">
-              Guardar cambios
+            <button
+              type="submit"
+              className="btn-primary mt-4"
+              disabled={guardando}
+            >
+              {guardando ? "Guardando..." : "Guardar cambios"}
             </button>
 
             {mensaje && (
@@ -356,7 +404,47 @@ export default function Perfil() {
         </section>
       </div>
 
-      {/* Citas confirmadas asociadas al correo de la cuenta. */}
+      {/* Historial de compras guardado en el backend */}
+      <section className="profile-appointments mt-5" aria-labelledby="compras-perfil-titulo">
+        <span className="admin-eyebrow">TIENDA</span>
+        <h2 id="compras-perfil-titulo" className="h4 mt-2 mb-3">Mis compras</h2>
+        {compras.length === 0 ? (
+          <p className="profile-appointments-empty">
+            Aún no tienes compras registradas.
+          </p>
+        ) : (
+          <div className="table-responsive">
+            <table className="table align-middle">
+              <thead>
+                <tr>
+                  <th>Orden</th>
+                  <th>Fecha</th>
+                  <th>Productos</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {compras.map((orden) => (
+                  <tr key={orden.id}>
+                    <td>{orden.id}</td>
+                    <td>{new Date(orden.date).toLocaleDateString("es-CL")}</td>
+                    <td>
+                      {orden.items
+                        .map((item) => `${item.name} x${item.quantity}`)
+                        .join(", ")}
+                    </td>
+                    <td>{formatearMoneda(orden.total)}</td>
+                    <td>{orden.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Citas confirmadas asociadas al correo de la cuenta (siguen en localStorage). */}
       <section className="profile-appointments mt-5" aria-labelledby="citas-perfil-titulo">
         <span className="admin-eyebrow">AGENDA</span>
         <h2 id="citas-perfil-titulo" className="h4 mt-2 mb-3">Mis próximas citas</h2>

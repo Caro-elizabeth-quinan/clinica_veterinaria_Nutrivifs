@@ -1,17 +1,17 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 import EncabezadoPanel from "../../componentes/EncabezadoPanel";
 import ErrorCampo from "../../componentes/ErrorCampo";
 import { claseCampo } from "../../utils/claseCampo";
 import { useSesion } from "../../hooks/useSesion";
 import { useFormulario, type Reglas } from "../../hooks/useFormulario";
-import { CLAVES, guardar } from "../../servicios/almacenamiento";
 import {
-  buscarProducto,
-  obtenerProductos,
-  siguienteCodigoProducto,
+  actualizarProductoApi,
+  buscarProductoApi,
+  crearProductoApi,
 } from "../../servicios/catalogo";
-import { nombresCategorias } from "../../servicios/categorias";
+import { obtenerCategoriasApi } from "../../servicios/categorias";
 import type { Producto } from "../../tipos";
 
 const MAX_BYTES_IMAGEN = 300 * 1024;
@@ -36,57 +36,41 @@ const VACIO: FormularioProducto = {
   category: "",
 };
 
-function crearReglas(codigoActual: string): Reglas<FormularioProducto> {
-  return {
-    id: (valor) => {
-      const codigo = valor.trim();
-      if (!codigo) return "El código es obligatorio.";
-      if (codigo.length < 3)
-        return "El código debe tener al menos 3 caracteres.";
-      if (
-        codigo !== codigoActual &&
-        obtenerProductos().some(
-          (item) => item.id.toLowerCase() === codigo.toLowerCase(),
-        )
-      ) {
-        return "Ya existe un producto con este código.";
-      }
-      return "";
-    },
-    name: (valor) => {
-      const nombre = valor.trim();
-      if (!nombre) return "El nombre es obligatorio.";
-      if (nombre.length > 100)
-        return "El nombre no puede superar los 100 caracteres.";
-      return "";
-    },
-    description: (valor) =>
-      valor.trim().length > 500
-        ? "La descripción no puede superar los 500 caracteres."
-        : "",
-    price: (valor) => {
-      const precio = valor.trim().replace(",", ".");
-      if (!precio) return "El precio es obligatorio.";
-      if (!/^\d+(\.\d+)?$/.test(precio)) {
-        return "Ingresa un número mayor o igual a 0 (puede tener decimales).";
-      }
-      return "";
-    },
-    stock: (valor) => {
-      const stock = valor.trim();
-      if (!stock) return "El stock es obligatorio.";
-      if (!/^\d+$/.test(stock)) {
-        return "El stock debe ser un número entero mayor o igual a 0.";
-      }
-      return "";
-    },
-    stockCritico: (valor) =>
-      valor.trim() && !/^\d+$/.test(valor.trim())
-        ? "El stock crítico debe ser un número entero mayor o igual a 0."
-        : "",
-    category: (valor) => (valor ? "" : "Selecciona una categoría."),
-  };
-}
+// El código lo asigna el backend, por eso no se valida aquí.
+const REGLAS: Reglas<FormularioProducto> = {
+  name: (valor) => {
+    const nombre = valor.trim();
+    if (!nombre) return "El nombre es obligatorio.";
+    if (nombre.length > 100)
+      return "El nombre no puede superar los 100 caracteres.";
+    return "";
+  },
+  description: (valor) =>
+    valor.trim().length > 255
+      ? "La descripción no puede superar los 255 caracteres."
+      : "",
+  price: (valor) => {
+    const precio = valor.trim();
+    if (!precio) return "El precio es obligatorio.";
+    if (!/^\d+$/.test(precio)) {
+      return "Ingresa un número entero mayor o igual a 0 (pesos, sin decimales).";
+    }
+    return "";
+  },
+  stock: (valor) => {
+    const stock = valor.trim();
+    if (!stock) return "El stock es obligatorio.";
+    if (!/^\d+$/.test(stock)) {
+      return "El stock debe ser un número entero mayor o igual a 0.";
+    }
+    return "";
+  },
+  stockCritico: (valor) =>
+    valor.trim() && !/^\d+$/.test(valor.trim())
+      ? "El stock crítico debe ser un número entero mayor o igual a 0."
+      : "",
+  category: (valor) => (valor ? "" : "Selecciona una categoría."),
+};
 
 function leerComoDataUrl(archivo: File): Promise<string> {
   return new Promise((resolver, rechazar) => {
@@ -97,7 +81,14 @@ function leerComoDataUrl(archivo: File): Promise<string> {
   });
 }
 
+function mensajeDeError(error: unknown, porDefecto: string): string {
+  return axios.isAxiosError(error)
+    ? (error.response?.data?.mensaje ?? porDefecto)
+    : "Error inesperado.";
+}
+
 // Nuevo, editar y mostrar producto. "soloLectura" corresponde a "Mostrar".
+// Crear y editar: solo Administrador. El Vendedor solo ve el detalle.
 export default function AdminProductoForm({
   soloLectura = false,
 }: {
@@ -106,32 +97,67 @@ export default function AdminProductoForm({
   const { codigo = "" } = useParams();
   const { sesion } = useSesion();
   const navegar = useNavigate();
-  const producto = codigo ? buscarProducto(codigo) : null;
-  // El Vendedor solo puede modificar el stock de un producto existente.
-  const soloStock =
-    !soloLectura && Boolean(producto) && sesion?.role === "Vendedor";
+  const esAdmin = sesion?.role === "Administrador";
 
-  const formulario = useFormulario<FormularioProducto>(
-    producto
-      ? {
-          id: producto.id,
-          name: producto.name,
-          description: producto.description ?? "",
-          price: String(producto.price),
-          stock: String(producto.stock),
-          stockCritico: String(producto.stockCritico ?? ""),
-          category: producto.category,
-        }
-      : { ...VACIO, id: siguienteCodigoProducto() },
-    crearReglas(codigo),
-  );
+  const [producto, setProducto] = useState<Producto | null>(null);
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [noEncontrado, setNoEncontrado] = useState(false);
+
+  const formulario = useFormulario<FormularioProducto>(VACIO, REGLAS);
   const { valores, errores, cambiar, tocar } = formulario;
 
-  const [imagen, setImagen] = useState(producto?.image ?? "");
+  const [imagen, setImagen] = useState("");
   const [errorImagen, setErrorImagen] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
-  if (codigo && !producto) {
+  // Carga las categorías (GET /productos/categorias) y, si es edición o detalle,
+  // el producto (GET /productos/{codigo})
+  useEffect(() => {
+    async function cargar() {
+      try {
+        const cats = await obtenerCategoriasApi();
+        setCategorias(cats.map((c) => c.nombre));
+
+        if (codigo) {
+          const encontrado = await buscarProductoApi(codigo);
+          setProducto(encontrado);
+          setImagen(encontrado.image ?? "");
+          formulario.reiniciar({
+            id: encontrado.id,
+            name: encontrado.name,
+            description: encontrado.description ?? "",
+            price: String(encontrado.price),
+            stock: String(encontrado.stock),
+            stockCritico: String(encontrado.stockCritico ?? ""),
+            category: encontrado.category,
+          });
+        }
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          setNoEncontrado(true);
+        } else {
+          setMensaje(mensajeDeError(error, "No se pudo conectar con el servidor."));
+        }
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codigo]);
+
+  if (cargando) {
+    return (
+      <div className="d-flex align-items-center gap-3 py-4" role="status">
+        <div className="spinner-border text-primary" aria-hidden="true" />
+        <span>Cargando...</span>
+      </div>
+    );
+  }
+
+  if (noEncontrado) {
     return (
       <EncabezadoPanel titulo="Producto no encontrado">
         <Link className="btn-secondary" to="/admin/productos">
@@ -161,7 +187,8 @@ export default function AdminProductoForm({
     }
   };
 
-  const enviar = (evento: FormEvent) => {
+  // POST /productos (nuevo) o PUT /productos/{codigo} (editar)
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
 
     if (!formulario.validarTodo() || errorImagen) {
@@ -171,31 +198,32 @@ export default function AdminProductoForm({
 
     const critico = valores.stockCritico.trim();
     const datos: Producto = {
-      id: valores.id.trim(),
+      id: producto?.id ?? "",
       name: valores.name.trim(),
       description: valores.description.trim(),
       species: producto?.species ?? "",
-      price: Number(valores.price.trim().replace(",", ".")),
+      price: Number(valores.price.trim()),
       stock: Number(valores.stock),
-      stockCritico: critico === "" ? "" : Number(critico),
+      stockCritico: critico === "" ? 0 : Number(critico),
       category: valores.category,
       image: imagen,
     };
 
-    const productos = obtenerProductos();
-    const indice = productos.findIndex((item) => item.id === codigo);
-
-    if (indice >= 0 && soloStock) {
-      // El Vendedor solo cambia el stock: el resto del producto se conserva.
-      productos[indice] = { ...productos[indice], stock: datos.stock };
-    } else if (indice >= 0) {
-      productos[indice] = datos;
-    } else {
-      productos.push(datos);
+    setGuardando(true);
+    setMensaje("");
+    try {
+      if (producto) {
+        await actualizarProductoApi(datos);
+      } else {
+        await crearProductoApi(datos);
+      }
+      navegar("/admin/productos");
+    } catch (error) {
+      // 400: datos inválidos o categoría inexistente · 403: sin permiso
+      setMensaje(mensajeDeError(error, "No se pudo guardar el producto."));
+    } finally {
+      setGuardando(false);
     }
-
-    guardar(CLAVES.PRODUCTOS, productos);
-    navegar("/admin/productos");
   };
 
   const campo = (nombre: keyof FormularioProducto) => ({
@@ -205,7 +233,7 @@ export default function AdminProductoForm({
       nombre === "category" ? "form-select" : "form-control",
     ),
     value: valores[nombre],
-    disabled: soloLectura || (soloStock && nombre !== "stock"),
+    disabled: soloLectura,
     onBlur: () => tocar(nombre),
   });
 
@@ -213,20 +241,18 @@ export default function AdminProductoForm({
     ? "Nuevo producto"
     : soloLectura
       ? "Detalle del producto"
-      : soloStock
-        ? "Modificar stock"
-        : "Editar producto";
+      : "Editar producto";
 
   return (
     <>
       <EncabezadoPanel etiqueta="PRODUCTOS" titulo={titulo}>
         <div className="admin-heading-actions">
-          {soloLectura && (
+          {soloLectura && esAdmin && (
             <Link
               className="btn-primary"
               to={`/admin/productos/${encodeURIComponent(codigo)}/editar`}
             >
-              {sesion?.role === "Administrador" ? "Editar" : "Modificar stock"}
+              Editar
             </Link>
           )}
           <Link className="btn-secondary" to="/admin/productos">
@@ -240,13 +266,12 @@ export default function AdminProductoForm({
           Código producto
           <input
             type="text"
-            autoComplete="off"
+            className="form-control"
+            value={producto?.id ?? "Se asigna al guardar"}
             readOnly
-            {...campo("id")}
-            onChange={(e) => cambiar("id", e.target.value)}
+            disabled
           />
-          <ErrorCampo mensaje={errores.id} />
-          <small className="campo-ayuda">Se asigna automáticamente.</small>
+          <small className="campo-ayuda">Lo asigna el sistema (ME001, ME002…).</small>
         </label>
 
         <label>
@@ -264,7 +289,7 @@ export default function AdminProductoForm({
           Descripción (opcional)
           <textarea
             rows={3}
-            maxLength={500}
+            maxLength={255}
             {...campo("description")}
             onChange={(e) => cambiar("description", e.target.value)}
           />
@@ -276,14 +301,14 @@ export default function AdminProductoForm({
             Precio
             <input
               type="text"
-              inputMode="decimal"
+              inputMode="numeric"
               placeholder="0"
               {...campo("price")}
               onChange={(e) => cambiar("price", e.target.value)}
             />
             <ErrorCampo mensaje={errores.price} />
             <small className="campo-ayuda">
-              Mínimo 0 (producto gratis). Acepta decimales.
+              En pesos, sin puntos ni decimales. Mínimo 0.
             </small>
           </label>
 
@@ -294,7 +319,7 @@ export default function AdminProductoForm({
               onChange={(e) => cambiar("category", e.target.value)}
             >
               <option value="">-- Selecciona la categoría --</option>
-              {nombresCategorias().map((categoria) => (
+              {categorias.map((categoria) => (
                 <option key={categoria} value={categoria}>
                   {categoria}
                 </option>
@@ -342,7 +367,7 @@ export default function AdminProductoForm({
           </p>
         )}
 
-        {!soloLectura && !soloStock && (
+        {!soloLectura && (
           <label>
             Imagen (opcional)
             <input
@@ -367,8 +392,8 @@ export default function AdminProductoForm({
         )}
 
         {!soloLectura && (
-          <button type="submit" className="btn-primary">
-            {soloStock ? "Guardar stock" : "Guardar producto"}
+          <button type="submit" className="btn-primary" disabled={guardando}>
+            {guardando ? "Guardando..." : "Guardar producto"}
           </button>
         )}
         <p className="profile-message" role="status">

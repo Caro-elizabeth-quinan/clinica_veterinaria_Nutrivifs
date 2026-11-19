@@ -1,9 +1,14 @@
-import { obtenerProductos } from "../servicios/catalogo";
+import type { Producto } from "../tipos";
 import { esStockCritico } from "../utils/stock";
 
 // Aviso con los productos que están en o bajo su stock crítico.
-export default function AlertaStockCritico() {
-  const criticos = obtenerProductos().filter(esStockCritico);
+// Recibe los productos que la página ya cargó desde el backend.
+export default function AlertaStockCritico({
+  productos = [],
+}: {
+  productos?: Producto[];
+}) {
+  const criticos = productos.filter(esStockCritico);
   if (criticos.length === 0) return null;
 
   return (

@@ -1,23 +1,20 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { IMAGEN_POR_DEFECTO } from "../datos/productos";
 import { CLAVES, guardar, leerLista } from "../servicios/almacenamiento";
-import { buscarProducto, obtenerProductos } from "../servicios/catalogo";
+import { obtenerProductosApi } from "../servicios/catalogo";
+import { comprarApi } from "../servicios/boleta";
 import { CarritoContexto } from "../hooks/useCarrito";
-import type { ItemCarrito, Orden, Sesion } from "../tipos";
+import type { ItemCarrito, Orden, Producto } from "../tipos";
 
 // Reglas del carrito:
-// 1. No se puede agregar más unidades que el stock disponible.
+// 1. No se puede agregar más unidades que el stock disponible (stock leído del backend).
 // 2. Si la cantidad llega a 0, el producto sale del carrito.
-// 3. El carrito se guarda en localStorage y se mantiene entre páginas.
-// 4. Para pagar hay que iniciar sesión; al pagar se descuenta el stock
-//    y se registra una orden.
-// 5. Cupón NUTRI10: 10% de descuento sobre el subtotal.
+// 3. Los ítems y el cupón se guardan en localStorage y se mantienen entre páginas.
+// 4. Para pagar hay que iniciar sesión; el backend (POST /boletas) registra la orden,
+//    valida y descuenta el stock y aplica el cupón.
+// 5. Cupón NUTRI10: 10% de descuento sobre el subtotal (el backend lo vuelve a validar).
 
 const CUPONES: Record<string, number> = { NUTRI10: 0.1 };
-
-function stockDe(codigo: string): number {
-  return Number(buscarProducto(codigo)?.stock) || 0;
-}
 
 export function ProveedorCarrito({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ItemCarrito[]>(() =>
@@ -26,6 +23,26 @@ export function ProveedorCarrito({ children }: { children: ReactNode }) {
   const [cupon, setCupon] = useState(
     () => localStorage.getItem(CLAVES.CUPON) ?? "",
   );
+  // Productos del backend: se usan para conocer el stock real
+  const [productos, setProductos] = useState<Producto[]>([]);
+
+  const cargarProductos = async () => {
+    try {
+      setProductos(await obtenerProductosApi());
+    } catch (error) {
+      console.error("No se pudieron cargar los productos del carrito:", error);
+    }
+  };
+
+  useEffect(() => {
+    cargarProductos();
+  }, []);
+
+  const productoDe = (codigo: string): Producto | null =>
+    productos.find((producto) => producto.id === codigo) ?? null;
+
+  const stockDe = (codigo: string): number =>
+    Number(productoDe(codigo)?.stock) || 0;
 
   const actualizar = (nuevos: ItemCarrito[]) => {
     guardar(CLAVES.CARRITO, nuevos);
@@ -44,7 +61,7 @@ export function ProveedorCarrito({ children }: { children: ReactNode }) {
     items.find((item) => item.code === codigo)?.quantity ?? 0;
 
   const agregar = (codigo: string, cantidad = 1): boolean => {
-    const producto = buscarProducto(codigo);
+    const producto = productoDe(codigo);
     if (!producto || cantidad < 1) return false;
     if (cantidadDe(codigo) + cantidad > Number(producto.stock)) return false;
 
@@ -104,48 +121,13 @@ export function ProveedorCarrito({ children }: { children: ReactNode }) {
     return true;
   };
 
-  // Registra la orden, descuenta el stock comprado y vacía el carrito.
-  const pagar = (sesion: Sesion): Orden => {
-    const ordenes = leerLista<Orden>(CLAVES.ORDENES);
-
-    // El número sale de un contador propio (no del largo de la lista),
-    // porque las órdenes enviadas se eliminan y no debe repetirse.
-    const numero =
-      Math.max(
-        Number(localStorage.getItem(CLAVES.SECUENCIA_ORDEN)) || 0,
-        ordenes.length,
-      ) + 1;
-    localStorage.setItem(CLAVES.SECUENCIA_ORDEN, String(numero));
-
-    const orden: Orden = {
-      id: `ORD-${String(numero).padStart(4, "0")}`,
-      date: new Date().toISOString(),
-      customer: {
-        name: `${sesion.name} ${sesion.apellido || ""}`.trim(),
-        email: sesion.email,
-      },
-      items: items.map((item) => ({ ...item })),
-      subtotal,
-      discount: descuento,
-      total,
-      status: "Entrega pendiente",
-    };
-    guardar(CLAVES.ORDENES, [...ordenes, orden]);
-
-    guardar(
-      CLAVES.PRODUCTOS,
-      obtenerProductos().map((producto) => {
-        const comprado = cantidadDe(producto.id);
-        return comprado
-          ? {
-              ...producto,
-              stock: Math.max(0, Number(producto.stock) - comprado),
-            }
-          : producto;
-      }),
-    );
-
+  // Envía la compra al backend (POST /api/v1/boletas). El backend calcula precios,
+  // valida y descuenta el stock y devuelve la orden con su número (ORD-0001).
+  // Si falla (sin stock, sesión vencida), lanza el error para que la página lo muestre.
+  const pagar = async (): Promise<Orden> => {
+    const orden = await comprarApi(items, cupon);
     vaciar();
+    await cargarProductos(); // stock actualizado después de la compra
     return orden;
   };
 
@@ -159,6 +141,7 @@ export function ProveedorCarrito({ children }: { children: ReactNode }) {
         descuento,
         total,
         cantidadDe,
+        productoDe,
         agregar,
         cambiarCantidad,
         quitar,

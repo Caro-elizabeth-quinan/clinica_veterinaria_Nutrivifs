@@ -1,5 +1,4 @@
 import type { Reglas } from "../hooks/useFormulario";
-import { leerPerfiles } from "../servicios/perfiles";
 import { ROLES } from "./roles";
 import {
   MENSAJE_DOMINIOS,
@@ -50,8 +49,8 @@ export const USUARIO_VACIO: FormularioUsuario = {
 };
 
 interface Opciones {
-  // Correo del usuario que se está editando, para no marcarlo como
-  // duplicado contra sí mismo.
+  // Se mantiene por compatibilidad con los formularios que lo envían.
+  // El correo y el RUN duplicados ahora los valida el backend.
   emailActual?: string;
   // Al editar, la contraseña vacía conserva la actual.
   passwordOpcional?: boolean;
@@ -60,9 +59,7 @@ interface Opciones {
 export function crearReglasUsuario(
   opciones: Opciones = {},
 ): Required<Reglas<FormularioUsuario>> {
-  const { emailActual = "", passwordOpcional = false } = opciones;
-  const otrosPerfiles = () =>
-    leerPerfiles().filter((perfil) => perfil.email !== emailActual);
+  const { passwordOpcional = false } = opciones;
 
   return {
     run: (valor) => {
@@ -73,9 +70,6 @@ export function crearReglasUsuario(
       }
       if (run.length < 7 || run.length > 9) {
         return "El RUN debe tener entre 7 y 9 caracteres.";
-      }
-      if (otrosPerfiles().some((perfil) => perfil.run === run)) {
-        return "Ya existe un usuario con este RUN.";
       }
       return "";
     },
@@ -100,20 +94,16 @@ export function crearReglasUsuario(
       if (email.length > 100)
         return "El correo no puede superar los 100 caracteres.";
       if (!esEmailValido(email)) return MENSAJE_DOMINIOS;
-      if (otrosPerfiles().some((perfil) => perfil.email === email)) {
-        return "Ese correo ya está registrado.";
-      }
       return "";
     },
-    
-    // Modificado para que sea estrictamente obligatorio y valide la edad mínima de 14 años
+
+    // Obligatoria y con edad mínima de 14 años
     birthDate: (valor) => {
       if (!valor || !valor.trim()) {
         return "La fecha de nacimiento es obligatoria.";
       }
       return esFechaNacimientoValida(valor) ? "" : MENSAJE_EDAD;
     },
-
 
     phone: (valor) =>
       !valor || valor === PREFIJO_TELEFONO || esTelefonoValido(valor)

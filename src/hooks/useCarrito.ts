@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { ItemCarrito, Orden, Sesion } from "../tipos";
+import type { ItemCarrito, Orden, Producto } from "../tipos";
 
 // Contexto del carrito y su hook. El proveedor (ProveedorCarrito) está en
 // contexto/CarritoContexto.tsx; aquí solo va lo que no es un componente, para
@@ -12,12 +12,13 @@ export interface ValorCarrito {
   descuento: number;
   total: number;
   cantidadDe: (codigo: string) => number;
+  productoDe: (codigo: string) => Producto | null;
   agregar: (codigo: string, cantidad?: number) => boolean;
   cambiarCantidad: (codigo: string, variacion: number) => void;
   quitar: (codigo: string) => void;
   vaciar: () => void;
   aplicarCupon: (codigo: string) => boolean;
-  pagar: (sesion: Sesion) => Orden;
+  pagar: () => Promise<Orden>;
 }
 
 export const CarritoContexto = createContext<ValorCarrito | null>(null);

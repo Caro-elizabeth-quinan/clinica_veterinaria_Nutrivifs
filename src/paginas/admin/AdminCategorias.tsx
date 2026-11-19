@@ -1,17 +1,18 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import axios from "axios";
 import BotonEliminar from "../../componentes/BotonEliminar";
 import EncabezadoPanel from "../../componentes/EncabezadoPanel";
 import ErrorCampo from "../../componentes/ErrorCampo";
 import { claseCampo } from "../../utils/claseCampo";
 import { useFormulario, type Reglas } from "../../hooks/useFormulario";
 import {
-  contarProductos,
-  guardarCategorias,
-  obtenerCategorias,
-  renombrarEnProductos,
-  siguienteIdCategoria,
+  actualizarCategoriaApi,
+  crearCategoriaApi,
+  eliminarCategoriaApi,
+  obtenerCategoriasApi,
 } from "../../servicios/categorias";
-import type { Categoria } from "../../tipos";
+import { obtenerProductosApi } from "../../servicios/catalogo";
+import type { Categoria, Producto } from "../../tipos";
 
 type FormularioCategoria = { nombre: string; descripcion: string };
 
@@ -41,15 +42,24 @@ function crearReglas(
   };
 }
 
+function mensajeDeError(error: unknown, porDefecto: string): string {
+  return axios.isAxiosError(error)
+    ? (error.response?.data?.mensaje ?? porDefecto)
+    : "Error inesperado.";
+}
+
 // Mantenedor de categorías (solo Administrador): listar, crear, editar y
-// eliminar. Una categoría con productos asociados no se puede eliminar.
+// eliminar contra el backend. Una categoría con productos no se puede eliminar.
 export default function AdminCategorias() {
-  const [categorias, setCategorias] = useState(obtenerCategorias);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
   // null = creando una nueva; un id = editando esa categoría.
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ texto: string; tipo: string } | null>(
     null,
   );
+  const [guardando, setGuardando] = useState(false);
 
   const formulario = useFormulario<FormularioCategoria>(
     VACIO,
@@ -57,10 +67,32 @@ export default function AdminCategorias() {
   );
   const { valores, errores, cambiar, tocar } = formulario;
 
-  const actualizar = (nuevas: Categoria[]) => {
-    guardarCategorias(nuevas);
-    setCategorias(nuevas);
+  // GET /productos/categorias y GET /productos (para contar productos por categoría)
+  const cargar = async () => {
+    try {
+      const [cats, prods] = await Promise.all([
+        obtenerCategoriasApi(),
+        obtenerProductosApi(),
+      ]);
+      setCategorias(cats);
+      setProductos(prods);
+    } catch (error) {
+      setAviso({
+        tipo: "alert-danger",
+        texto: mensajeDeError(error, "No se pudo conectar con el servidor."),
+      });
+    } finally {
+      setCargando(false);
+    }
   };
+
+  useEffect(() => {
+    cargar();
+  }, []);
+
+  const contarProductos = (nombreCategoria: string) =>
+    productos.filter((producto) => producto.category === nombreCategoria)
+      .length;
 
   const cancelar = () => {
     setEditandoId(null);
@@ -72,28 +104,33 @@ export default function AdminCategorias() {
     setAviso(null);
     formulario.reiniciar({
       nombre: categoria.nombre,
-      descripcion: categoria.descripcion,
+      descripcion: categoria.descripcion ?? "",
     });
   };
 
-  const eliminar = (categoria: Categoria) => {
-    const enUso = contarProductos(categoria.nombre);
-    if (enUso > 0) {
+  // DELETE /productos/categorias/{id}
+  const eliminar = async (categoria: Categoria) => {
+    try {
+      await eliminarCategoriaApi(categoria.id);
+      setCategorias((actuales) =>
+        actuales.filter((item) => item.id !== categoria.id),
+      );
+      if (editandoId === categoria.id) cancelar();
+      setAviso({
+        tipo: "alert-success",
+        texto: `Categoría "${categoria.nombre}" eliminada.`,
+      });
+    } catch (error) {
+      // 400: "No se puede eliminar: la categoría tiene productos asociados."
       setAviso({
         tipo: "alert-warning",
-        texto: `No se puede eliminar "${categoria.nombre}": tiene ${enUso} producto${enUso === 1 ? "" : "s"} asociado${enUso === 1 ? "" : "s"}. Cámbialos de categoría primero.`,
+        texto: mensajeDeError(error, "No se pudo eliminar la categoría."),
       });
-      return;
     }
-    actualizar(categorias.filter((item) => item.id !== categoria.id));
-    if (editandoId === categoria.id) cancelar();
-    setAviso({
-      tipo: "alert-success",
-      texto: `Categoría "${categoria.nombre}" eliminada.`,
-    });
   };
 
-  const enviar = (evento: FormEvent) => {
+  // POST /productos/categorias (nueva) o PUT /productos/categorias/{id} (editar)
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     if (!formulario.validarTodo()) return;
 
@@ -102,23 +139,25 @@ export default function AdminCategorias() {
       descripcion: valores.descripcion.trim(),
     };
 
-    if (editandoId) {
-      const anterior = categorias.find((item) => item.id === editandoId);
-      actualizar(
-        categorias.map((item) =>
-          item.id === editandoId ? { ...item, ...datos } : item,
-        ),
-      );
-      if (anterior) renombrarEnProductos(anterior.nombre, datos.nombre);
-      setAviso({ tipo: "alert-success", texto: "Categoría actualizada." });
-    } else {
-      actualizar([
-        ...categorias,
-        { id: siguienteIdCategoria(categorias), ...datos },
-      ]);
-      setAviso({ tipo: "alert-success", texto: "Categoría creada." });
+    setGuardando(true);
+    try {
+      if (editandoId) {
+        await actualizarCategoriaApi({ id: editandoId, ...datos });
+        setAviso({ tipo: "alert-success", texto: "Categoría actualizada." });
+      } else {
+        await crearCategoriaApi({ id: "", ...datos });
+        setAviso({ tipo: "alert-success", texto: "Categoría creada." });
+      }
+      cancelar();
+      await cargar(); // recarga lista y conteos (los productos siguen asociados al renombrar)
+    } catch (error) {
+      setAviso({
+        tipo: "alert-danger",
+        texto: mensajeDeError(error, "No se pudo guardar la categoría."),
+      });
+    } finally {
+      setGuardando(false);
     }
-    cancelar();
   };
 
   return (
@@ -145,7 +184,12 @@ export default function AdminCategorias() {
                 </tr>
               </thead>
               <tbody>
-                {categorias.length === 0 && (
+                {cargando && (
+                  <tr>
+                    <td colSpan={5}>Cargando categorías...</td>
+                  </tr>
+                )}
+                {!cargando && categorias.length === 0 && (
                   <tr>
                     <td colSpan={5}>Aún no hay categorías.</td>
                   </tr>
@@ -187,17 +231,18 @@ export default function AdminCategorias() {
               {editandoId ? `Editar ${editandoId}` : "Nueva categoría"}
             </h2>
 
-            {/* El código se asigna solo (CAT01, CAT02…) y no se edita. */}
+            {/* El código lo asigna el backend (CAT01, CAT02…) y no se edita. */}
             <label>
               Código categoría
               <input
                 type="text"
                 name="id"
                 className="form-control"
-                value={editandoId ?? siguienteIdCategoria(categorias)}
+                value={editandoId ?? "Se asigna al guardar"}
                 readOnly
+                disabled
               />
-              <small className="campo-ayuda">Se asigna automáticamente.</small>
+              <small className="campo-ayuda">Lo asigna el sistema.</small>
             </label>
 
             <label>
@@ -230,13 +275,17 @@ export default function AdminCategorias() {
 
             {editandoId && (
               <small className="campo-ayuda">
-                Si cambias el nombre, sus productos se actualizan también.
+                Si cambias el nombre, sus productos siguen asociados.
               </small>
             )}
 
             <div className="d-flex flex-wrap gap-2">
-              <button type="submit" className="btn-primary">
-                {editandoId ? "Guardar cambios" : "Crear categoría"}
+              <button type="submit" className="btn-primary" disabled={guardando}>
+                {guardando
+                  ? "Guardando..."
+                  : editandoId
+                    ? "Guardar cambios"
+                    : "Crear categoría"}
               </button>
               {editandoId && (
                 <button

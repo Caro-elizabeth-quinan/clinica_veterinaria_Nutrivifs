@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PreguntasFrecuentes from "../componentes/PreguntasFrecuentes";
 import TarjetaDestacada from "../componentes/TarjetaDestacada";
 import { CLAVES, leerLista } from "../servicios/almacenamiento";
-import { obtenerProductos } from "../servicios/catalogo";
-import type { IntegranteEquipo } from "../tipos";
+import { obtenerProductosApi } from "../servicios/catalogo";
+import type { IntegranteEquipo, Producto } from "../tipos";
 import { iniciales } from "../utils/formato";
 
 const BENEFICIOS = [
@@ -22,7 +23,15 @@ const SERVICIOS_DOMICILIO = [
 ];
 
 export default function Inicio() {
-  const destacados = obtenerProductos().slice(0, 6);
+  // Productos destacados desde el backend (los 6 primeros de GET /productos)
+  const [destacados, setDestacados] = useState<Producto[]>([]);
+
+  useEffect(() => {
+    obtenerProductosApi()
+      .then((productos) => setDestacados(productos.slice(0, 6)))
+      .catch((e) => console.error("Error al cargar destacados:", e));
+  }, []);
+
   const equipo = leerLista<IntegranteEquipo>(CLAVES.EQUIPO).filter(
     (integrante) => integrante.status !== "Inactivo",
   );

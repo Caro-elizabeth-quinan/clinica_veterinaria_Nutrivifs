@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import {
@@ -9,8 +10,7 @@ import {
 import { tieneComunas } from "../utils/regiones";
 import { useSesion } from "../hooks/useSesion";
 import { useFormulario } from "../hooks/useFormulario";
-import { guardarPerfiles, leerPerfiles } from "../servicios/perfiles";
-import type { Perfil } from "../tipos";
+import { loginApi, registrarApi } from "../servicios/auth";
 import {
   USUARIO_VACIO,
   crearReglasUsuario,
@@ -34,44 +34,56 @@ const CAMPOS_SELECT: (keyof FormularioUsuario)[] = [
   "genero",
 ];
 
-
-
 export default function Registro() {
   const { iniciarSesion } = useSesion();
   const navegar = useNavigate();
   const [mensaje, setMensaje] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal);
   const formulario = useFormulario<FormularioUsuario>(USUARIO_VACIO, REGLAS);
   const { valores, errores, cambiar, tocar } = formulario;
 
-  const enviar = (evento: FormEvent) => {
+  // Valida en el front, crea la cuenta en el backend (POST /auth/registro)
+  // y luego inicia sesión para obtener el token JWT.
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
+    setMensaje("");
 
     if (!formulario.validarTodo()) {
       setMensaje("Revisa los campos marcados en rojo.");
       return;
     }
 
-    const perfil: Perfil = {
-      run: valores.run.trim().toUpperCase(),
-      name: valores.name.trim(),
-      apellido: valores.apellido.trim(),
-      email: normalizarEmail(valores.email),
-      birthDate: valores.birthDate,
-      direccion: valores.direccion.trim(),
-      region: valores.region,
-      comuna: valores.comuna,
-      genero: valores.genero,
-      phone: valores.phone === PREFIJO_TELEFONO ? "" : valores.phone,
-      role: "Cliente",
-      password: valores.password,
-      failedAttempts: 0,
-      locked: false,
-    };
+    const email = normalizarEmail(valores.email);
+    setEnviando(true);
+    try {
+      await registrarApi({
+        run: valores.run.trim().toUpperCase(),
+        name: valores.name.trim(),
+        apellido: valores.apellido.trim(),
+        email,
+        password: valores.password,
+        birthDate: valores.birthDate || null,
+        direccion: valores.direccion.trim(),
+        region: valores.region,
+        comuna: valores.comuna,
+        phone: valores.phone === PREFIJO_TELEFONO ? "" : valores.phone,
+      });
 
-    guardarPerfiles([...leerPerfiles(), perfil]);
-    iniciarSesion(perfil);
-    navegar("/");
+      // Cuenta creada: se inicia sesión automáticamente
+      const perfil = await loginApi(email, valores.password);
+      iniciarSesion(perfil);
+      navegar("/");
+    } catch (error) {
+      // 400: correo o RUN repetido, edad mínima, contraseña inválida...
+      const texto = axios.isAxiosError(error)
+        ? (error.response?.data?.mensaje ??
+          "No se pudo conectar con el servidor.")
+        : "Error inesperado.";
+      setMensaje(texto);
+    } finally {
+      setEnviando(false);
+    }
   };
 
   // Atributos comunes de un campo de texto controlado.
@@ -156,7 +168,7 @@ export default function Registro() {
             type="date"
             id="reg-birth"
             autoComplete="bday"
-            max={fechaMaximaNacimiento} 
+            max={fechaMaximaNacimiento}
             {...campo("birthDate")}
             onChange={(e) => cambiar("birthDate", e.target.value)}
           />
@@ -273,8 +285,8 @@ export default function Registro() {
             de registro.
           </label>
 
-          <button type="submit" className="btn-primary">
-            Registrar
+          <button type="submit" className="btn-primary" disabled={enviando}>
+            {enviando ? "Registrando..." : "Registrar"}
           </button>
           <p
             id="standalone-register-message"

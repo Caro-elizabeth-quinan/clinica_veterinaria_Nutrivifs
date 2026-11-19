@@ -1,6 +1,5 @@
 import type { Resena } from "../tipos";
 import { CLAVES, guardar, leerLista } from "./almacenamiento";
-
 function todas(): Resena[] {
   return leerLista<Resena>(CLAVES.RESENAS);
 }
