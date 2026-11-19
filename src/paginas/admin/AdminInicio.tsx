@@ -1,16 +1,35 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AlertaStockCritico from "../../componentes/AlertaStockCritico";
 import { useSesion } from "../../hooks/useSesion";
 import { CLAVES, leerLista } from "../../servicios/almacenamiento";
-import { obtenerProductos } from "../../servicios/catalogo";
-import { leerPerfiles } from "../../servicios/perfiles";
-import type { Cita } from "../../tipos";
+import { obtenerProductosApi } from "../../servicios/catalogo";
+import { listarUsuariosApi } from "../../servicios/usuarios";
+import { listarBoletasApi } from "../../servicios/boleta";
+import type { Cita, Producto } from "../../tipos";
 
+// Inicio del panel (solo Administrador): resumen con datos del backend.
+// Las citas siguen en localStorage (no están en el modelo de datos de la guía).
 export default function AdminInicio() {
   const { sesion } = useSesion();
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [totalUsuarios, setTotalUsuarios] = useState(0);
+  const [totalOrdenes, setTotalOrdenes] = useState(0);
+
   const citasPendientes = leerLista<Cita>(CLAVES.CITAS).filter(
     (cita) => cita.estado === "Pendiente",
   ).length;
+
+  // GET /productos, /usuarios y /boletas. Si una falla, las demás se muestran igual.
+  useEffect(() => {
+    obtenerProductosApi().then(setProductos).catch(console.error);
+    listarUsuariosApi()
+      .then((u) => setTotalUsuarios(u.length))
+      .catch(console.error);
+    listarBoletasApi()
+      .then((o) => setTotalOrdenes(o.length))
+      .catch(console.error);
+  }, []);
 
   return (
     <>
@@ -21,7 +40,7 @@ export default function AdminInicio() {
         tienda.
       </p>
 
-      <AlertaStockCritico />
+      <AlertaStockCritico productos={productos} />
 
       <section
         className="admin-stats row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3"
@@ -30,19 +49,19 @@ export default function AdminInicio() {
         <div className="col">
           <article className="h-100">
             <span>Productos</span>
-            <strong>{obtenerProductos().length}</strong>
+            <strong>{productos.length}</strong>
           </article>
         </div>
         <div className="col">
           <article className="h-100">
             <span>Usuarios</span>
-            <strong>{leerPerfiles().length}</strong>
+            <strong>{totalUsuarios}</strong>
           </article>
         </div>
         <div className="col">
           <article className="h-100">
             <span>Órdenes</span>
-            <strong>{leerLista(CLAVES.ORDENES).length}</strong>
+            <strong>{totalOrdenes}</strong>
           </article>
         </div>
         <div className="col">

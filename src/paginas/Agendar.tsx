@@ -10,7 +10,6 @@ import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
 import { CLAVES, guardar, leerLista } from "../servicios/almacenamiento";
-import { leerPerfiles } from "../servicios/perfiles";
 import { useSesion } from "../hooks/useSesion";
 import type { Cita } from "../tipos";
 import {
@@ -168,13 +167,6 @@ export default function Agendar() {
   const { sesion } = useSesion();
   const [mensaje, setMensaje] = useState("");
 
-  // Busca el perfil registrado de la sesión activa. La sesión contiene algunos
-  // datos básicos; el perfil completo también incluye RUN y fecha de nacimiento.
-  const perfilActual = sesion
-    ? leerPerfiles().find(
-        (perfil) => perfil.email.toLowerCase() === sesion.email.toLowerCase(),
-      )
-    : undefined;
   // Fecha mínima del calendario: se calcula una sola vez al abrir la página.
   const [hoy] = useState(fechaHoyLocal);
   const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal); 
@@ -188,14 +180,14 @@ export default function Agendar() {
   }, []); 
 
   const inicial: FormularioCita = {
-    nombre: perfilActual?.name ?? sesion?.name ?? "",
-    apellido: perfilActual?.apellido ?? sesion?.apellido ?? "",
-    rut: perfilActual?.run ? formatearRut(perfilActual.run) : "",
+    nombre: sesion?.name ?? "",
+    apellido: sesion?.apellido ?? "",
+    rut: "",
     // El registro permite omitir la fecha de nacimiento. Solo se precarga
     // cuando existe en el perfil; si falta, se solicita en este formulario.
-    fechaNacimiento: perfilActual?.birthDate ?? sesion?.birthDate ?? "",
-    correo: perfilActual?.email ?? sesion?.email ?? "",
-    telefono: perfilActual?.phone || sesion?.phone || PREFIJO_TELEFONO,
+    fechaNacimiento: sesion?.birthDate ?? "",
+    correo: sesion?.email ?? "",
+    telefono: sesion?.phone || PREFIJO_TELEFONO,
     mascota: "",
     especie: "",
     otraEspecie: "",

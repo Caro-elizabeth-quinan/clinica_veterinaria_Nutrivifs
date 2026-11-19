@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
@@ -8,9 +8,10 @@ import ResumenProducto from "../componentes/ResumenProducto";
 import TarjetaProducto from "../componentes/TarjetaProducto";
 import { useCarrito } from "../hooks/useCarrito";
 import { IMAGEN_POR_DEFECTO } from "../datos/productos";
-import { buscarProducto, obtenerProductos } from "../servicios/catalogo";
+import { obtenerProductosApi } from "../servicios/catalogo";
 import { promedio, resenasDeProducto } from "../servicios/resenas";
 import { formatearPrecio } from "../utils/formato";
+import type { Producto } from "../tipos";
 
 // Detalle de un producto (/productos/ME001). La "key" hace que React cree la
 // ficha de nuevo al pasar a otro producto (por ejemplo desde "Productos
@@ -30,14 +31,46 @@ function FichaProducto({ codigo }: { codigo: string }) {
   // de reseñas, que lo actualiza al publicar o eliminar.
   const [resenas, setResenas] = useState(() => resenasDeProducto(codigo));
 
-  const producto = buscarProducto(codigo);
+  // Productos desde el backend (GET /productos)
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
 
-  if (!producto) {
+  useEffect(() => {
+    async function cargar() {
+      try {
+        setProductos(await obtenerProductosApi());
+      } catch (e) {
+        console.error("Error al cargar el producto:", e);
+        setErrorCarga("No se pudo conectar con el servidor.");
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargar();
+  }, []);
+
+  if (cargando) {
+    return (
+      <main>
+        <section className="container product-detail-page">
+          <div className="d-flex align-items-center gap-3 py-5" role="status">
+            <div className="spinner-border text-primary" aria-hidden="true" />
+            <span>Cargando producto...</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const producto = productos.find((item) => item.id === codigo);
+
+  if (errorCarga || !producto) {
     return (
       <main>
         <section className="container product-detail-page">
           <p className="detail-not-found">
-            No encontramos el producto solicitado.{" "}
+            {errorCarga || "No encontramos el producto solicitado."}{" "}
             <Link to="/productos">Volver al catálogo</Link>
           </p>
         </section>
@@ -77,7 +110,6 @@ function FichaProducto({ codigo }: { codigo: string }) {
     }
   };
 
-  const productos = obtenerProductos();
   const relacionados = [
     ...productos.filter(
       (item) => item.category === producto.category && item.id !== producto.id,

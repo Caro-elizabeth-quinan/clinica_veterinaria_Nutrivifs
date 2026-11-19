@@ -1,10 +1,9 @@
-import { CUENTAS_INICIALES, EQUIPO_INICIAL } from "../datos/cuentas";
-import { CATEGORIAS_INICIALES, PRODUCTOS_BASE } from "../datos/productos";
-import type { Perfil } from "../tipos";
+import { EQUIPO_INICIAL } from "../datos/cuentas";
 
-
-// Claves de localStorage. Son las mismas del sitio HTML, así que los datos
-// guardados sirven para las dos versiones.
+// Claves de localStorage. Son las mismas del sitio HTML.
+// Productos, usuarios, categorías y órdenes ahora viven en el backend (MySQL);
+// aquí quedan el carrito, el cupón, la sesión, las citas, los mensajes,
+// las reseñas y el equipo.
 export const CLAVES = {
   CARRITO: "carrito",
   CUPON: "carrito-cupon",
@@ -21,7 +20,8 @@ export const CLAVES = {
   EQUIPO: "admin-users",
 } as const;
 
-const VERSION_SEMILLA = "6";
+// Versión 7: los datos de la tienda pasaron al backend.
+const VERSION_SEMILLA = "7";
 
 export function leerLista<T>(clave: string): T[] {
   try {
@@ -44,48 +44,19 @@ export function guardar(clave: string, datos: unknown): void {
   localStorage.setItem(clave, JSON.stringify(datos));
 }
 
-// Deja en localStorage los productos, las cuentas de demostración y el
-// equipo la primera vez que se abre el sitio (o cuando cambia la versión).
+// Prepara localStorage al abrir el sitio: borra los datos que ahora maneja el
+// backend (versiones anteriores) y deja el equipo de la página de inicio.
 export function sembrarDatosIniciales(): void {
-  const semillaDesactualizada =
-    localStorage.getItem(CLAVES.VERSION_SEMILLA) !== VERSION_SEMILLA;
-
-  if (semillaDesactualizada) {
-    localStorage.removeItem(CLAVES.EQUIPO);
+  if (localStorage.getItem(CLAVES.VERSION_SEMILLA) !== VERSION_SEMILLA) {
+    [
+      CLAVES.PRODUCTOS,
+      CLAVES.PERFILES,
+      CLAVES.CATEGORIAS,
+      CLAVES.ORDENES,
+      CLAVES.SECUENCIA_ORDEN,
+      CLAVES.EQUIPO,
+    ].forEach((clave) => localStorage.removeItem(clave));
     localStorage.setItem(CLAVES.VERSION_SEMILLA, VERSION_SEMILLA);
-  }
-
-  if (semillaDesactualizada || leerLista(CLAVES.PRODUCTOS).length === 0) {
-    guardar(CLAVES.PRODUCTOS, PRODUCTOS_BASE);
-  }
-
-  // Las cuentas iniciales se agregan solo si el correo aún no existe.
-  const perfiles = leerLista<Perfil>(CLAVES.PERFILES);
-  let cambiaron = false;
-
-  CUENTAS_INICIALES.forEach((cuenta) => {
-    if (perfiles.some((perfil) => perfil.email === cuenta.email)) return;
-
-    perfiles.push({
-      birthDate: "",
-      direccion: "Av. San Marcos 123",
-      genero: "prefiero-no-decir",
-      phone: "",
-      region: "Libertador General Bernardo O'Higgins",
-      comuna: "Rancagua",
-      failedAttempts: 0,
-      locked: false,
-      ...cuenta,
-    });
-    cambiaron = true;
-  });
-
-  if (cambiaron) guardar(CLAVES.PERFILES, perfiles);
-
-  // Las categorías se crean solo la primera vez: si el administrador las
-  // elimina todas, la lista queda vacía.
-  if (localStorage.getItem(CLAVES.CATEGORIAS) === null) {
-    guardar(CLAVES.CATEGORIAS, CATEGORIAS_INICIALES);
   }
 
   if (leerLista(CLAVES.EQUIPO).length === 0) {
