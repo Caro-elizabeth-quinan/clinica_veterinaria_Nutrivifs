@@ -16,8 +16,8 @@ import {
   obtenerMiPerfilApi,
 } from "../servicios/usuarios";
 import { misComprasApi } from "../servicios/boleta";
+import { misCitasApi } from "../servicios/citas";
 import type { Cita, Orden, Perfil as PerfilUsuario } from "../tipos";
-import { CLAVES, leerLista } from "../servicios/almacenamiento";
 import { formatearMoneda } from "../utils/formato";
 import {
   USUARIO_VACIO,
@@ -93,6 +93,13 @@ export default function Perfil() {
     REGLAS_PERFIL,
   );
   const { valores, errores, cambiar, tocar } = formulario;
+  const [citas, setCitas] = useState<Cita[]>([]);
+
+  // Citas del usuario desde el backend (GET /citas/mias)
+  useEffect(() => {
+    if (!sesion) return;
+    misCitasApi().then(setCitas).catch(() => setCitas([]));
+  }, [sesion]);
 
   // Carga el perfil (GET /auth/me) y las compras (GET /boletas/mias) desde el backend
   useEffect(() => {
@@ -142,7 +149,7 @@ export default function Perfil() {
   const edad = calcularEdad(perfil.birthDate);
   const hoy = fechaHoyLocal();
   const correoPerfil = perfil.email.trim().toLowerCase();
-  const citasFuturas = leerLista<Cita>(CLAVES.CITAS)
+  const citasFuturas = citas
     .filter(
       (cita) =>
         cita.correo.trim().toLowerCase() === correoPerfil &&
@@ -444,7 +451,7 @@ export default function Perfil() {
         )}
       </section>
 
-      {/* Citas confirmadas asociadas al correo de la cuenta (siguen en localStorage). */}
+      {/* Citas confirmadas asociadas al correo de la cuenta (vienen del backend). */}
       <section className="profile-appointments mt-5" aria-labelledby="citas-perfil-titulo">
         <span className="admin-eyebrow">AGENDA</span>
         <h2 id="citas-perfil-titulo" className="h4 mt-2 mb-3">Mis próximas citas</h2>

@@ -4,8 +4,7 @@ import { ListaContacto, MapaClinica } from "../componentes/DatosClinica";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
-import { CLAVES, guardar, leerLista } from "../servicios/almacenamiento";
-import type { Mensaje } from "../tipos";
+import { enviarMensajeApi, mensajeDeErrorApi } from "../servicios/citas";
 import {
   MENSAJE_DOMINIOS,
   esEmailValido,
@@ -55,28 +54,41 @@ const REGLAS: Reglas<FormularioContacto> = {
 
 export default function Contacto() {
   const [confirmacion, setConfirmacion] = useState("");
+  const [exito, setExito] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const formulario = useFormulario<FormularioContacto>(VACIO, REGLAS);
   const { valores, errores, cambiar, tocar } = formulario;
 
-  const enviar = (evento: FormEvent) => {
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     setConfirmacion("");
     if (!formulario.validarTodo()) return;
 
-    // Los mensajes quedan guardados de manera interna (localStorage).
-    guardar(CLAVES.MENSAJES, [
-      ...leerLista<Mensaje>(CLAVES.MENSAJES),
-      {
-        fecha: new Date().toISOString(),
+    // El mensaje se guarda en la base de datos (POST /api/v1/mensajes).
+    setEnviando(true);
+    try {
+      await enviarMensajeApi({
         nombre: valores.nombre.trim(),
         correo: normalizarEmail(valores.correo),
         motivo: valores.motivo,
         comentario: valores.mensaje.trim(),
-      },
-    ]);
-
-    setConfirmacion("Mensaje enviado correctamente. Te contactaremos pronto.");
-    formulario.reiniciar();
+      });
+      setExito(true);
+      setConfirmacion(
+        "Mensaje enviado correctamente. Te contactaremos pronto.",
+      );
+      formulario.reiniciar();
+    } catch (error) {
+      setExito(false);
+      setConfirmacion(
+        mensajeDeErrorApi(
+          error,
+          "No se pudo conectar con el servidor. Intenta nuevamente.",
+        ),
+      );
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const campo = (nombre: keyof FormularioContacto) => ({
@@ -163,10 +175,15 @@ export default function Contacto() {
                 <ErrorCampo mensaje={errores.mensaje} />
               </div>
 
-              <button type="submit" className="btn-agendar">
-                Enviar Mensaje
+              <button type="submit" className="btn-agendar" disabled={enviando}>
+                {enviando ? "Enviando..." : "Enviar Mensaje"}
               </button>
-              <p id="form-contacto-message" role="status" aria-live="polite">
+              <p
+                id="form-contacto-message"
+                className={confirmacion ? (exito ? "text-success" : "text-danger") : ""}
+                role="status"
+                aria-live="polite"
+              >
                 {confirmacion}
               </p>
             </form>

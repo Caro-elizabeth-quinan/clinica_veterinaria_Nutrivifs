@@ -2,25 +2,21 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AlertaStockCritico from "../../componentes/AlertaStockCritico";
 import { useSesion } from "../../hooks/useSesion";
-import { CLAVES, leerLista } from "../../servicios/almacenamiento";
 import { obtenerProductosApi } from "../../servicios/catalogo";
 import { listarUsuariosApi } from "../../servicios/usuarios";
 import { listarBoletasApi } from "../../servicios/boleta";
-import type { Cita, Producto } from "../../tipos";
+import { listarCitasApi } from "../../servicios/citas";
+import type { Producto } from "../../tipos";
 
 // Inicio del panel (solo Administrador): resumen con datos del backend.
-// Las citas siguen en localStorage (no están en el modelo de datos de la guía).
 export default function AdminInicio() {
   const { sesion } = useSesion();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [totalOrdenes, setTotalOrdenes] = useState(0);
+  const [citasPendientes, setCitasPendientes] = useState(0);
 
-  const citasPendientes = leerLista<Cita>(CLAVES.CITAS).filter(
-    (cita) => cita.estado === "Pendiente",
-  ).length;
-
-  // GET /productos, /usuarios y /boletas. Si una falla, las demás se muestran igual.
+  // GET /productos, /usuarios, /boletas y /citas. Si una falla, las demás se muestran igual.
   useEffect(() => {
     obtenerProductosApi().then(setProductos).catch(console.error);
     listarUsuariosApi()
@@ -28,6 +24,11 @@ export default function AdminInicio() {
       .catch(console.error);
     listarBoletasApi()
       .then((o) => setTotalOrdenes(o.length))
+      .catch(console.error);
+    listarCitasApi()
+      .then((c) =>
+        setCitasPendientes(c.filter((cita) => cita.estado === "Pendiente").length),
+      )
       .catch(console.error);
   }, []);
 

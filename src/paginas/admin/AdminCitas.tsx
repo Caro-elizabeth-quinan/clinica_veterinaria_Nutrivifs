@@ -1,18 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import EncabezadoPanel from "../../componentes/EncabezadoPanel";
-import { CLAVES, guardar, leerLista } from "../../servicios/almacenamiento";
+import {
+  cambiarEstadoCitaApi,
+  listarCitasApi,
+  mensajeDeErrorApi,
+} from "../../servicios/citas";
 import type { Cita, EstadoCita } from "../../tipos";
 
 // Solicitudes recibidas desde "Agenda tu consulta": confirmar, rechazar o reabrir.
+// Los datos vienen del backend (GET /citas) y los cambios se guardan con PATCH.
 export default function AdminCitas() {
-  const [citas, setCitas] = useState(() => leerLista<Cita>(CLAVES.CITAS));
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-  const cambiarEstado = (id: string, estado: EstadoCita) => {
-    const nuevas = citas.map((cita) =>
-      cita.id === id ? { ...cita, estado } : cita,
-    );
-    guardar(CLAVES.CITAS, nuevas);
-    setCitas(nuevas);
+  useEffect(() => {
+    async function cargar() {
+      try {
+        setCitas(await listarCitasApi());
+      } catch (e) {
+        setError(
+          mensajeDeErrorApi(e, "No se pudieron cargar las citas."),
+        );
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargar();
+  }, []);
+
+  const cambiarEstado = async (id: string, estado: EstadoCita) => {
+    setError("");
+    try {
+      const actualizada = await cambiarEstadoCitaApi(id, estado);
+      setCitas((actuales) =>
+        actuales.map((cita) => (cita.id === id ? actualizada : cita)),
+      );
+    } catch (e) {
+      setError(mensajeDeErrorApi(e, "No se pudo actualizar la cita."));
+    }
   };
 
   return (
@@ -24,7 +50,9 @@ export default function AdminCitas() {
         una.
       </p>
 
-      {citas.length === 0 && (
+      {error && <p className="admin-alert">{error}</p>}
+      {cargando && <p className="admin-alert">Cargando citas...</p>}
+      {!cargando && !error && citas.length === 0 && (
         <p className="admin-alert">Aún no hay solicitudes de consulta.</p>
       )}
 
@@ -42,7 +70,7 @@ export default function AdminCitas() {
             </tr>
           </thead>
           <tbody>
-            {[...citas].reverse().map((cita) => (
+            {citas.map((cita) => (
               <tr key={cita.id}>
                 <td>{cita.id}</td>
                 <td>

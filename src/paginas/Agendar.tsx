@@ -9,9 +9,8 @@ import { CATEGORIAS_SERVICIO } from "../datos/servicios";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
-import { CLAVES, guardar, leerLista } from "../servicios/almacenamiento";
+import { crearCitaApi, mensajeDeErrorApi } from "../servicios/citas";
 import { useSesion } from "../hooks/useSesion";
-import type { Cita } from "../tipos";
 import {
   CORREO_AGENDAMIENTO_REGEX,
   MENSAJE_EDAD,
@@ -166,6 +165,8 @@ export default function Agendar() {
   const [parametros] = useSearchParams();
   const { sesion } = useSesion();
   const [mensaje, setMensaje] = useState("");
+  const [exito, setExito] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
   // Fecha mínima del calendario: se calcula una sola vez al abrir la página.
   const [hoy] = useState(fechaHoyLocal);
@@ -200,39 +201,48 @@ export default function Agendar() {
   const { valores, errores, cambiar, tocar } = formulario;
   const especiesDisponibles = especiesPermitidas(valores.tipoConsulta);
 
-  const enviar = (evento: FormEvent) => {
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     setMensaje("");
     if (!formulario.validarTodo()) return;
 
-    // La solicitud queda guardada para que el administrador la vea y la
-    // confirme en su panel (Citas).
-    const citas = leerLista<Cita>(CLAVES.CITAS);
-    const cita: Cita = {
-      id: `CIT-${String(citas.length + 1).padStart(4, "0")}`,
-      fechaSolicitud: new Date().toISOString(),
-      nombre: `${valores.nombre.trim()} ${valores.apellido.trim()}`,
-      rut: valores.rut,
-      correo: valores.correo,
-      telefono: valores.telefono,
-      mascota: valores.mascota.trim(),
-      especie:
-        valores.especie === "otro"
-          ? valores.otraEspecie.trim()
-          : valores.especie,
-      tipoConsulta:
-        SERVICIOS_DISPONIBLES.find((servicio) => servicio.codigo === valores.tipoConsulta)
-          ?.nombre ?? valores.tipoConsulta,
-      fecha: valores.fecha,
-      motivo: valores.motivo.trim(),
-      estado: "Pendiente",
-    };
-    guardar(CLAVES.CITAS, [...citas, cita]);
-
-    setMensaje(
-      `Solicitud ${cita.id} enviada. Nos pondremos en contacto contigo para confirmar.`,
-    );
-    formulario.reiniciar({ ...inicial, tipoConsulta: "" });
+    // La solicitud se guarda en la base de datos (POST /api/v1/citas) y
+    // el administrador la ve y la confirma en su panel (Citas).
+    setEnviando(true);
+    try {
+      const cita = await crearCitaApi({
+        nombre: `${valores.nombre.trim()} ${valores.apellido.trim()}`,
+        rut: valores.rut,
+        correo: valores.correo.trim().toLowerCase(),
+        telefono: valores.telefono,
+        mascota: valores.mascota.trim(),
+        especie:
+          valores.especie === "otro"
+            ? valores.otraEspecie.trim()
+            : valores.especie,
+        tipoConsulta:
+          SERVICIOS_DISPONIBLES.find(
+            (servicio) => servicio.codigo === valores.tipoConsulta,
+          )?.nombre ?? valores.tipoConsulta,
+        fecha: valores.fecha,
+        motivo: valores.motivo.trim(),
+      });
+      setExito(true);
+      setMensaje(
+        `Solicitud ${cita.id} enviada. Nos pondremos en contacto contigo para confirmar.`,
+      );
+      formulario.reiniciar({ ...inicial, tipoConsulta: "" });
+    } catch (error) {
+      setExito(false);
+      setMensaje(
+        mensajeDeErrorApi(
+          error,
+          "No se pudo conectar con el servidor. Intenta nuevamente.",
+        ),
+      );
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const campo = (nombre: keyof FormularioCita) => ({
@@ -545,13 +555,17 @@ export default function Agendar() {
                 <ErrorCampo mensaje={errores.motivo} />
               </div>
 
-              <button type="submit" className="btn-agendar campo-completo">
+              <button
+                type="submit"
+                className="btn-agendar campo-completo"
+                disabled={enviando}
+              >
                 <i className="bi bi-send-fill me-2" aria-hidden="true" />
-                Solicitar consulta
+                {enviando ? "Enviando..." : "Solicitar consulta"}
               </button>
               <p
                 id="appointment-message"
-                className="campo-completo"
+                className={`campo-completo ${mensaje ? (exito ? "text-success" : "text-danger") : ""}`}
                 role="status"
                 aria-live="polite"
               >

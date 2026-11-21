@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { useSesion } from "../hooks/useSesion";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
 import {
-  eliminarResena,
-  guardarResena,
+  eliminarResenaApi,
+  guardarResenaApi,
   promedio,
-  resenasDeProducto,
+  resenasDeProductoApi,
 } from "../servicios/resenas";
+import { mensajeDeErrorApi } from "../servicios/citas";
 import type { Resena } from "../tipos";
 import { formatearFecha } from "../utils/formato";
 import BotonEliminar from "./BotonEliminar";
@@ -64,33 +65,52 @@ export default function ResenasProducto({
   const { valores, errores, cambiar, tocar } = formulario;
   const [filtro, setFiltro] = useState(0); // 0 = todas
   const [mensaje, setMensaje] = useState("");
+  const [exito, setExito] = useState(true);
+  const [enviando, setEnviando] = useState(false);
 
-  const recargar = () => alCambiar(resenasDeProducto(productoId));
+  const recargar = async () =>
+    alCambiar(await resenasDeProductoApi(productoId));
 
-  const enviar = (evento: FormEvent) => {
+  const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     setMensaje("");
     if (!sesion || !formulario.validarTodo()) return;
 
-    guardarResena({
-      id: propia?.id ?? `RES-${Date.now()}`,
-      productoId,
-      email: sesion.email,
-      autor: `${sesion.name} ${sesion.apellido.charAt(0)}.`.trim(),
-      puntuacion: Number(valores.puntuacion),
-      comentario: valores.comentario.trim(),
-      fecha: new Date().toISOString(),
-    });
-    recargar();
-    setMensaje(propia ? "Tu reseña se actualizó." : "¡Gracias por tu reseña!");
+    setEnviando(true);
+    try {
+      await guardarResenaApi({
+        productoId,
+        autor: `${sesion.name} ${sesion.apellido.charAt(0)}.`.trim(),
+        puntuacion: Number(valores.puntuacion),
+        comentario: valores.comentario.trim(),
+      });
+      await recargar();
+      setExito(true);
+      setMensaje(
+        propia ? "Tu reseña se actualizó." : "¡Gracias por tu reseña!",
+      );
+    } catch (error) {
+      setExito(false);
+      setMensaje(
+        mensajeDeErrorApi(error, "No se pudo guardar tu reseña. Intenta nuevamente."),
+      );
+    } finally {
+      setEnviando(false);
+    }
   };
 
-  const borrar = (resena: Resena) => {
-    eliminarResena(resena.id);
-    recargar();
-    if (resena.email === sesion?.email) {
-      formulario.reiniciar({ puntuacion: "0", comentario: "" });
-      setMensaje("Tu reseña se eliminó.");
+  const borrar = async (resena: Resena) => {
+    try {
+      await eliminarResenaApi(resena.id);
+      await recargar();
+      if (resena.email === sesion?.email) {
+        formulario.reiniciar({ puntuacion: "0", comentario: "" });
+        setExito(true);
+        setMensaje("Tu reseña se eliminó.");
+      }
+    } catch (error) {
+      setExito(false);
+      setMensaje(mensajeDeErrorApi(error, "No se pudo eliminar la reseña."));
     }
   };
 
@@ -185,11 +205,18 @@ export default function ResenasProducto({
               </small>
               <ErrorCampo mensaje={errores.comentario} />
 
-              <button type="submit" className="btn-primary mt-2">
-                {propia ? "Actualizar reseña" : "Publicar reseña"}
+              <button type="submit" className="btn-primary mt-2" disabled={enviando}>
+                {enviando
+                  ? "Guardando..."
+                  : propia
+                    ? "Actualizar reseña"
+                    : "Publicar reseña"}
               </button>
               {mensaje && (
-                <p className="alert alert-success mt-3 mb-0" role="status">
+                <p
+                  className={`alert mt-3 mb-0 ${exito ? "alert-success" : "alert-danger"}`}
+                  role="status"
+                >
                   {mensaje}
                 </p>
               )}

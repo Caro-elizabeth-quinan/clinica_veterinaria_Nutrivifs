@@ -1,30 +1,31 @@
+import { api } from "../api/axiosConfig";
 import type { Resena } from "../tipos";
-import { CLAVES, guardar, leerLista } from "./almacenamiento";
-function todas(): Resena[] {
-  return leerLista<Resena>(CLAVES.RESENAS);
-}
 
-// Reseñas de un producto, de la más reciente a la más antigua.
-export function resenasDeProducto(productoId: string): Resena[] {
-  return todas()
-    .filter((resena) => resena.productoId === productoId)
-    .sort((a, b) => b.fecha.localeCompare(a.fecha));
-}
-
-// Cada usuario tiene una reseña por producto: si ya existe, se reemplaza.
-export function guardarResena(resena: Resena): void {
-  const resto = todas().filter(
-    (item) =>
-      !(item.productoId === resena.productoId && item.email === resena.email),
+// GET /api/v1/resenas/producto/{id} (público): de la más reciente a la más antigua
+export async function resenasDeProductoApi(
+  productoId: string,
+): Promise<Resena[]> {
+  const respuesta = await api.get<Resena[]>(
+    `/resenas/producto/${encodeURIComponent(productoId)}`,
   );
-  guardar(CLAVES.RESENAS, [...resto, resena]);
+  return respuesta.data;
 }
 
-export function eliminarResena(id: string): void {
-  guardar(
-    CLAVES.RESENAS,
-    todas().filter((resena) => resena.id !== id),
-  );
+// POST /api/v1/resenas (con sesión): el correo sale del token.
+// Cada usuario tiene una reseña por producto: si ya existe, el backend la actualiza.
+export async function guardarResenaApi(datos: {
+  productoId: string;
+  autor: string;
+  puntuacion: number;
+  comentario: string;
+}): Promise<Resena> {
+  const respuesta = await api.post<Resena>("/resenas", datos);
+  return respuesta.data;
+}
+
+// DELETE /api/v1/resenas/{id}: el autor borra la suya; el Administrador cualquiera.
+export async function eliminarResenaApi(id: string): Promise<void> {
+  await api.delete(`/resenas/${id}`);
 }
 
 export function promedio(resenas: Resena[]): number {

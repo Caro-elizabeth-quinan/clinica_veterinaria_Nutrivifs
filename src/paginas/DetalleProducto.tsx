@@ -9,9 +9,9 @@ import TarjetaProducto from "../componentes/TarjetaProducto";
 import { useCarrito } from "../hooks/useCarrito";
 import { IMAGEN_POR_DEFECTO } from "../datos/productos";
 import { obtenerProductosApi } from "../servicios/catalogo";
-import { promedio, resenasDeProducto } from "../servicios/resenas";
+import { promedio, resenasDeProductoApi } from "../servicios/resenas";
 import { formatearPrecio } from "../utils/formato";
-import type { Producto } from "../tipos";
+import type { Producto, Resena } from "../tipos";
 
 // Detalle de un producto (/productos/ME001). La "key" hace que React cree la
 // ficha de nuevo al pasar a otro producto (por ejemplo desde "Productos
@@ -29,7 +29,12 @@ function FichaProducto({ codigo }: { codigo: string }) {
   const [agregadas, setAgregadas] = useState(0);
   // Estado "levantado": lo usan el resumen junto al título y la sección
   // de reseñas, que lo actualiza al publicar o eliminar.
-  const [resenas, setResenas] = useState(() => resenasDeProducto(codigo));
+  const [resenas, setResenas] = useState<Resena[]>([]);
+
+  // Reseñas desde el backend (GET /resenas/producto/{codigo})
+  useEffect(() => {
+    resenasDeProductoApi(codigo).then(setResenas).catch(() => setResenas([]));
+  }, [codigo]);
 
   // Productos desde el backend (GET /productos)
   const [productos, setProductos] = useState<Producto[]>([]);
