@@ -1,10 +1,12 @@
 import BannerPagina from "../componentes/BannerPagina";
 import TarjetaServicio from "../componentes/TarjetaServicio";
-import { CATEGORIAS_SERVICIO } from "../datos/servicios";
+import { useCategoriasServicio } from "../hooks/useCategoriasServicio";
 
-// Listado de servicios por categoría. Cada servicio es una <TarjetaServicio>,
-// con su resumen desplegable y el botón "Agendar" (tipo preseleccionado).
+// Listado de servicios por categoría (GET /api/v1/servicios). Cada servicio es
+// una <TarjetaServicio>, con su resumen desplegable y el botón "Agendar".
 export default function Consultas() {
+  const { categorias, cargando, error } = useCategoriasServicio();
+
   return (
     <main>
       <BannerPagina
@@ -19,7 +21,14 @@ export default function Consultas() {
         className="services-section container"
         aria-labelledby="consultas-title"
       >
-        {CATEGORIAS_SERVICIO.map((categoria) => (
+        {cargando && <p>Cargando servicios…</p>}
+        {error && (
+          <p className="text-danger" role="alert">
+            {error}
+          </p>
+        )}
+
+        {categorias.map((categoria) => (
           <section
             key={categoria.id}
             className={categoria.clase}

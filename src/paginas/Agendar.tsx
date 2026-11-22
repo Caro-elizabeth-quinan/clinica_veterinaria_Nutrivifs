@@ -1,16 +1,16 @@
-import { useState, type FormEvent,
-        useEffect, useRef,
-        } from "react";
+import { useState, type FormEvent, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import BannerPagina from "../componentes/BannerPagina";
 import HorarioAtencion from "../componentes/HorarioAtencion";
 import { CLINICA, HORARIO_RESUMEN } from "../datos/sitio";
-import { CATEGORIAS_SERVICIO } from "../datos/servicios";
 import ErrorCampo from "../componentes/ErrorCampo";
 import { claseCampo } from "../utils/claseCampo";
 import { useFormulario, type Reglas } from "../hooks/useFormulario";
 import { crearCitaApi, mensajeDeErrorApi } from "../servicios/citas";
 import { useSesion } from "../hooks/useSesion";
+import { useCategoriasServicio } from "../hooks/useCategoriasServicio";
+import type { CategoriaServicio } from "../tipos";
+
 import {
   CORREO_AGENDAMIENTO_REGEX,
   MENSAJE_EDAD,
@@ -41,14 +41,18 @@ type FormularioCita = {
   motivo: string;
 };
 
-// El formulario utiliza el mismo catálogo que la página de servicios.
-const SERVICIOS_DISPONIBLES = CATEGORIAS_SERVICIO.flatMap((categoria) =>
-  categoria.servicios.map((servicio) => ({
-    codigo: servicio.codigo,
-    nombre: servicio.nombre,
-    consulta: servicio.consulta,
-  })),
-);
+type OpcionServicio = { codigo: string; nombre: string; consulta: string };
+
+// Opciones del selector, a partir del catálogo que llega del backend
+function aOpciones(categorias: CategoriaServicio[]): OpcionServicio[] {
+  return categorias.flatMap((categoria) =>
+    categoria.servicios.map((servicio) => ({
+      codigo: servicio.codigo,
+      nombre: servicio.nombre,
+      consulta: servicio.consulta,
+    })),
+  );
+}
 
 // Pasos que se muestran sobre el formulario.
 const PASOS = [
@@ -106,8 +110,11 @@ const REGLAS: Reglas<FormularioCita> = {
 };
 
 // El servicio elegido en Consultas llega como ?consulta= y queda preseleccionado.
-function tipoDesdeConsulta(consulta: string): string {
-  const servicio = SERVICIOS_DISPONIBLES.find(
+function tipoDesdeConsulta(
+  categorias: CategoriaServicio[],
+  consulta: string,
+): string {
+  const servicio = aOpciones(categorias).find(
     (opcion) =>
       opcion.consulta.toLowerCase() === consulta.toLowerCase() ||
       opcion.codigo.toLowerCase() === consulta.toLowerCase() ||
@@ -117,30 +124,49 @@ function tipoDesdeConsulta(consulta: string): string {
 }
 
 // Devuelve las especies admitidas por el servicio seleccionado en el catálogo.
-function especieAutomatica(codigoServicio: string): string {
-  const servicio = SERVICIOS_DISPONIBLES.find(
+function especieAutomatica(
+  categorias: CategoriaServicio[],
+  codigoServicio: string,
+): string {
+  const servicio = aOpciones(categorias).find(
     (opcion) => opcion.codigo === codigoServicio,
   );
   if (!servicio) return "";
 
-  const detalle = CATEGORIAS_SERVICIO.flatMap((categoria) => categoria.servicios)
-    .find((item) => item.codigo === codigoServicio)?.especie.toLowerCase() ?? "";
+  const detalle =
+    categorias
+      .flatMap((categoria) => categoria.servicios)
+      .find((item) => item.codigo === codigoServicio)
+      ?.especie.toLowerCase() ?? "";
   const nombre = `${servicio.nombre} ${servicio.consulta}`.toLowerCase();
   const texto = `${detalle} ${nombre}`;
 
-  if (texto.includes("canina") || texto.includes("canino") || texto.includes("perro")) {
+  if (
+    texto.includes("canina") ||
+    texto.includes("canino") ||
+    texto.includes("perro")
+  ) {
     return "Perro";
   }
-  if (texto.includes("felina") || texto.includes("felino") || texto.includes("gato")) {
+  if (
+    texto.includes("felina") ||
+    texto.includes("felino") ||
+    texto.includes("gato")
+  ) {
     return "Gato";
   }
 
-  const permitidas = especiesPermitidas(codigoServicio);
+  const permitidas = especiesPermitidas(categorias, codigoServicio);
   return permitidas.length === 1 ? permitidas[0] : "";
 }
 
-function especiesPermitidas(codigoServicio: string): string[] {
-  const servicio = SERVICIOS_DISPONIBLES.find((opcion) => opcion.codigo === codigoServicio);
+function especiesPermitidas(
+  categorias: CategoriaServicio[],
+  codigoServicio: string,
+): string[] {
+  const servicio = aOpciones(categorias).find(
+    (opcion) => opcion.codigo === codigoServicio,
+  );
   if (!servicio) return ["Perro", "Gato", "Ave", "Conejo", "otro"];
 
   const especie = servicio.consulta.toLowerCase();
@@ -149,19 +175,32 @@ function especiesPermitidas(codigoServicio: string): string[] {
     return ["Ave", "Conejo"];
   }
 
-  const detalle = CATEGORIAS_SERVICIO.flatMap((categoria) => categoria.servicios)
-    .find((item) => item.codigo === codigoServicio)?.especie.toLowerCase() ?? "";
-  if (detalle.includes("todas")) return ["Perro", "Gato", "Ave", "Conejo", "otro"];
+  const detalle =
+    categorias
+      .flatMap((categoria) => categoria.servicios)
+      .find((item) => item.codigo === codigoServicio)
+      ?.especie.toLowerCase() ?? "";
+  if (detalle.includes("todas")) {
+    return ["Perro", "Gato", "Ave", "Conejo", "otro"];
+  }
 
   const permitidas: string[] = [];
-  if (detalle.includes("perro") || detalle.includes("perra")) permitidas.push("Perro");
-  if (detalle.includes("gato") || detalle.includes("gata")) permitidas.push("Gato");
+  if (detalle.includes("perro") || detalle.includes("perra")) {
+    permitidas.push("Perro");
+  }
+  if (detalle.includes("gato") || detalle.includes("gata")) {
+    permitidas.push("Gato");
+  }
   if (detalle.includes("ave")) permitidas.push("Ave");
   if (detalle.includes("conejo")) permitidas.push("Conejo");
-  return permitidas.length ? permitidas : ["Perro", "Gato", "Ave", "Conejo", "otro"];
+  return permitidas.length
+    ? permitidas
+    : ["Perro", "Gato", "Ave", "Conejo", "otro"];
 }
 
-export default function Agendar() {
+// Formulario de la cita. Recibe el catálogo ya cargado desde el backend.
+function FormularioAgenda({ categorias }: { categorias: CategoriaServicio[] }) {
+  const opciones = aOpciones(categorias);
   const [parametros] = useSearchParams();
   const { sesion } = useSesion();
   const [mensaje, setMensaje] = useState("");
@@ -170,15 +209,18 @@ export default function Agendar() {
 
   // Fecha mínima del calendario: se calcula una sola vez al abrir la página.
   const [hoy] = useState(fechaHoyLocal);
-  const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal); 
+  const [fechaMaximaNacimiento] = useState(fechaMaximaNacimientoLocal);
 
   const formularioRef = useRef<HTMLFormElement>(null);
 
-   useEffect(() => {
+  useEffect(() => {
     if (formularioRef.current) {
-      formularioRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      formularioRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }
-  }, []); 
+  }, []);
 
   const inicial: FormularioCita = {
     nombre: sesion?.name ?? "",
@@ -192,14 +234,17 @@ export default function Agendar() {
     mascota: "",
     especie: "",
     otraEspecie: "",
-    tipoConsulta: tipoDesdeConsulta(parametros.get("consulta") ?? ""),
+    tipoConsulta: tipoDesdeConsulta(categorias, parametros.get("consulta") ?? ""),
     fecha: "",
     motivo: "",
   };
 
   const formulario = useFormulario<FormularioCita>(inicial, REGLAS);
   const { valores, errores, cambiar, tocar } = formulario;
-  const especiesDisponibles = especiesPermitidas(valores.tipoConsulta);
+  const especiesDisponibles = especiesPermitidas(
+    categorias,
+    valores.tipoConsulta,
+  );
 
   const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
@@ -221,9 +266,8 @@ export default function Agendar() {
             ? valores.otraEspecie.trim()
             : valores.especie,
         tipoConsulta:
-          SERVICIOS_DISPONIBLES.find(
-            (servicio) => servicio.codigo === valores.tipoConsulta,
-          )?.nombre ?? valores.tipoConsulta,
+          opciones.find((servicio) => servicio.codigo === valores.tipoConsulta)
+            ?.nombre ?? valores.tipoConsulta,
         fecha: valores.fecha,
         motivo: valores.motivo.trim(),
       });
@@ -327,7 +371,7 @@ export default function Agendar() {
             </aside>
 
             <form
-              ref={formularioRef} 
+              ref={formularioRef}
               className="appointment-form"
               id="appointment-form"
               noValidate
@@ -505,7 +549,7 @@ export default function Agendar() {
                     // el servicio recién seleccionado.
                     formulario.reiniciarCampos({
                       tipoConsulta: nuevoTipo,
-                      especie: especieAutomatica(nuevoTipo),
+                      especie: especieAutomatica(categorias, nuevoTipo),
                       otraEspecie: "",
                     });
                   }}
@@ -513,8 +557,11 @@ export default function Agendar() {
                   <option value="" disabled>
                     Selecciona una opción
                   </option>
-                  {CATEGORIAS_SERVICIO.map((categoria) => (
-                    <optgroup key={categoria.id} label={categoria.titulo.replace(/^\S+\s*/, "")}>
+                  {categorias.map((categoria) => (
+                    <optgroup
+                      key={categoria.id}
+                      label={categoria.titulo.replace(/^\S+\s*/, "")}
+                    >
                       {categoria.servicios.map((servicio) => (
                         <option key={servicio.codigo} value={servicio.codigo}>
                           {servicio.nombre}
@@ -577,4 +624,28 @@ export default function Agendar() {
       </div>
     </main>
   );
+}
+
+// Página: carga el catálogo desde el backend y recién entonces muestra el
+// formulario, para que el servicio elegido en Consultas quede preseleccionado.
+export default function Agendar() {
+  const { categorias, cargando, error } = useCategoriasServicio();
+
+  if (cargando) {
+    return (
+      <main className="container py-5">
+        <p>Cargando servicios…</p>
+      </main>
+    );
+  }
+  if (error) {
+    return (
+      <main className="container py-5">
+        <p className="text-danger" role="alert">
+          {error}
+        </p>
+      </main>
+    );
+  }
+  return <FormularioAgenda categorias={categorias} />;
 }

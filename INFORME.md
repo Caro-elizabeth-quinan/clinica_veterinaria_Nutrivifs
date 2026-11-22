@@ -1,51 +1,177 @@
-# Informe de migración – Clínica NutriDifs
+# Informe del proyecto – Clínica NutriDifs
 
-**Asignatura:** DSY1104 – Evaluación Parcial N.° 2
+**Asignatura:** DSY1104 – Evaluación Parcial N.° 3
 **Integrantes:** Carolina Quinan · Liza Micele · Benatha Louime
-**Tecnologías:** React 19 · TypeScript · Vite · Bootstrap 5 · Bootstrap Icons · React Router · LocalStorage
+**Tecnologías:**
+- **Frontend:** React 19 · TypeScript · Vite · Bootstrap 5 · Bootstrap Icons · React Router · Axios
+- **Backend:** Java 21 · Spring Boot · Spring Security · JWT · Swagger (OpenAPI)
+- **Base de datos:** MySQL
 
 ## 1. Punto de partida y objetivo
 
 En la Evaluación Parcial N.° 1 construimos la tienda de la Clínica NutriDifs con
-HTML, CSS y JavaScript: páginas estáticas que manipulaban el DOM directamente y
-guardaban la información en LocalStorage. En esta etapa migramos el sitio
-completo a React con TypeScript. Mantuvimos sus secciones y reglas de negocio,
-y agregamos la administración por roles, el perfil personal y el diseño
-responsivo con Bootstrap 5.
+HTML, CSS y JavaScript, y en la N.° 2 la migramos a React con TypeScript. En
+ambas etapas la información se guardaba en LocalStorage, por lo que las
+credenciales y los roles no constituían un sistema de seguridad real.
 
-## 2. Cómo hicimos la migración
+En esta tercera etapa reemplazamos ese almacenamiento por un **backend en
+Spring Boot con base de datos MySQL**, y conectamos el frontend mediante una
+**API REST** protegida con **JWT**. Mantuvimos la identidad visual, las
+secciones y las reglas de negocio de las etapas anteriores, y agregamos
+autenticación, permisos por rol validados en el servidor, historial por
+usuario y reportes administrativos con datos reales.
 
-Migramos por etapas, manteniendo el sitio funcionando en cada una:
+## 2. Arquitectura general
 
-1. Base del proyecto con Vite + React + TypeScript, cabecera, pie e Inicio.
-2. Páginas de contenido: Quiénes somos, Blog y sus artículos.
-3. Tienda: catálogo con filtros, detalle de producto y carrito.
-4. Usuarios: inicio de sesión, registro, sesión y roles.
-5. Consultas, agendamiento de citas y contacto.
-6. Panel de administración: productos, usuarios, órdenes y citas.
-7. Ampliación: categorías, perfil personal, permisos del vendedor y Bootstrap 5.
-8. Mejoras de la tienda: reseñas de productos, resúmenes de productos y
-   servicios, preguntas frecuentes, horario 24/7, redes sociales, medios de pago,
-   Términos y condiciones y Política de privacidad.
+```
+Navegador (React, :5173)  ──HTTP/JSON + JWT──▶  API REST (Spring Boot, :8080)  ──JPA──▶  MySQL
+```
 
-Mantuvimos las **mismas claves de LocalStorage** del sitio original
-(`carrito`, `clinica-nutridifs-profiles`, `admin-products`, etc.), así que los
-datos del sitio HTML siguen sirviendo en la versión React.
+- El **frontend** nunca guarda usuarios, productos ni transacciones: los pide y
+  los envía a la API con Axios.
+- El **backend** valida los datos, aplica las reglas de negocio y los permisos
+  por rol, y es el único que accede a la base de datos.
+- La **base de datos** conserva la información al reiniciar la aplicación.
 
-Cada `document.querySelector` + `innerHTML` del sitio original pasó a ser estado
-de React (`useState`) y JSX. Ninguna pantalla manipula el DOM directamente: las
-interacciones cambian el estado y React vuelve a dibujar la interfaz.
+## 3. Backend (Spring Boot)
 
-## 3. Organización del proyecto
+### 3.1 Organización
+
+Cada módulo sigue el esquema **model → repository → service → controller**, con
+DTOs para la entrada y la salida de datos:
+
+```
+cl.duoc.nutrivifs/
+├── auth/        Inicio de sesión, registro, renovación de token y /auth/me
+├── usuario/     Usuarios y roles (CRUD, perfil propio, desbloqueo de cuentas)
+├── producto/    Productos y sus categorías
+├── servicio/    Servicios veterinarios y sus categorías
+├── boleta/      Compras (boleta y detalle), stock, cupón y estados
+├── cita/        Solicitudes de hora veterinaria
+├── mensaje/     Mensajes del formulario de contacto
+├── resena/      Opiniones de productos
+├── reporte/     Indicadores del dashboard administrativo
+├── archivo/     Subida de imágenes de productos
+├── security/    JWT, filtro de autenticación, permisos por rol y CORS
+├── exception/   Manejo central de errores
+└── config/      Datos iniciales, Swagger y publicación de /uploads
+```
+
+### 3.2 Base de datos
+
+Usamos MySQL con JPA/Hibernate (`ddl-auto=update`): las tablas se crean a partir
+de las entidades. Al iniciar, `DatosIniciales` carga roles, usuarios,
+categorías, productos y servicios de demostración **solo si las tablas están
+vacías**, de modo que los datos se conservan al reiniciar el backend.
+
+| Tabla | Contenido | Relaciones |
+|---|---|---|
+| `roles` | Administrador, Vendedor, Cliente | — |
+| `usuarios` | Datos personales, contraseña cifrada, intentos fallidos y bloqueo | muchos a uno con `roles` |
+| `categorias_productos` | Categorías de productos (nombre único) | — |
+| `productos` | Precio, stock, stock crítico, imagen | muchos a uno con `categorias_productos` |
+| `categorias_servicios` | Categorías de servicios | — |
+| `servicios` | Duración, precio, descripción | muchos a uno con `categorias_servicios` |
+| `boletas` | Fecha, subtotal, descuento, total y estado | muchos a uno con `usuarios` |
+| `detalles_boleta` | Cantidad, precio unitario al momento de la compra, subtotal | muchos a uno con `boletas` y con `productos` |
+| `citas` | Solicitudes de hora veterinaria y su estado | — |
+| `mensajes` | Mensajes del formulario de contacto | — |
+| `resenas` | Puntuación y comentario; una por usuario y producto | restricción única (producto, correo) |
+
+### 3.3 API REST y Swagger
+
+La API expone endpoints GET, POST, PUT, PATCH y DELETE bajo `/api/v1`, con
+respuestas en JSON y códigos HTTP apropiados. Está documentada con Swagger:
+`http://localhost:8080/swagger-ui.html`. Para probar los endpoints protegidos,
+se hace `POST /api/v1/auth/login`, se copia el `token` y se pega en el botón
+**Authorize**.
+
+| Módulo | Operaciones principales |
+|---|---|
+| Autenticación | `POST /auth/login`, `POST /auth/registro`, `POST /auth/refresh`, `GET /auth/me` |
+| Usuarios | CRUD, `PUT /usuarios/me` (perfil propio), `PATCH /usuarios/{id}/desbloquear` |
+| Productos y servicios | Lectura pública; crear, editar y eliminar solo Administrador; categorías incluidas |
+| Boletas | `POST /boletas` (comprar), `GET /boletas/mias`, `GET /boletas`, `PATCH /boletas/{id}/estado` |
+| Citas | `POST /citas` (público), `GET /citas/mias`, `GET /citas`, `PATCH /citas/{id}/estado` |
+| Mensajes y reseñas | `POST /mensajes`, `GET /mensajes`; reseñas por producto |
+| Reportes | `GET /reportes/resumen?periodo=semana\|mes\|anio` |
+| Archivos | `POST /archivos/imagen` (solo Administrador, máximo 5 MB) |
+
+### 3.4 Validación y manejo de errores
+
+Los datos que llegan desde el frontend se validan con anotaciones de Bean
+Validation (`@Valid`). Un manejador central (`ManejadorErrores`) convierte las
+excepciones en respuestas JSON con código, mensaje y fecha:
+
+| Código | Situación |
+|---|---|
+| 400 | Datos inválidos, JSON mal formado o regla de negocio incumplida |
+| 401 | Sin sesión o credenciales incorrectas |
+| 403 | Sin permiso para el rol del usuario |
+| 404 | Recurso no encontrado |
+| 409 | Registros relacionados o duplicados |
+
+## 4. Autenticación y seguridad
+
+- **Inicio de sesión:** `POST /auth/login` valida el correo y la contraseña
+  contra los usuarios de la base de datos y entrega un token JWT.
+- **Contraseñas:** se almacenan con **BCrypt**; nunca en texto plano ni en las
+  respuestas de la API.
+- **Token JWT:** se firma con una clave secreta y dura **1 hora**. Un filtro
+  (`FiltroJwt`) valida la firma y la vigencia en cada solicitud.
+- **Renovación:** `POST /auth/refresh` entrega un token nuevo mientras el actual
+  siga vigente.
+- **Bloqueo de cuenta:** tras 3 intentos fallidos la cuenta se bloquea; el
+  Administrador la desbloquea desde el panel.
+- **Roles y permisos:** `SecurityConfig` restringe cada endpoint por rol.
+
+| Rol | Permisos en la API |
+|---|---|
+| **Público** | Ver productos, servicios y reseñas; registrarse; iniciar sesión; enviar citas y mensajes |
+| **Cliente** | Lo anterior, más: comprar, ver sus compras y citas, editar su perfil, reseñar productos |
+| **Vendedor** | Lo del Cliente, más: ver todas las órdenes, citas y mensajes |
+| **Administrador** | Acceso total: usuarios y roles, productos, servicios y categorías, estados de órdenes y citas, imágenes y reportes |
+
+- **Privacidad entre usuarios:** el backend identifica al cliente por el correo
+  contenido en el token, no por un identificador enviado desde el navegador. Un
+  usuario solo puede consultar sus propias compras y citas.
+- **Secretos:** la conexión a la base de datos y la clave JWT se pueden definir
+  con variables de entorno (`DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`).
+  Los valores por defecto del repositorio son solo para desarrollo local.
+- **CORS:** el backend solo acepta solicitudes del origen del frontend
+  (`http://localhost:5173`).
+
+## 5. Reglas de negocio
+
+- **Compra:** el backend valida el stock, lo descuenta y recalcula los precios
+  desde la base de datos. Todo ocurre en una transacción: si algo falla, no se
+  guarda nada.
+- El cupón `NUTRI10` aplica un 10 % de descuento.
+- Estados de una orden: Entrega pendiente, Listo y Enviado.
+- Estados de una cita: Pendiente, Confirmada y Rechazada; la fecha no puede estar
+  en el pasado.
+- No se elimina un usuario con compras ni se puede eliminar o cambiar el rol de
+  la propia cuenta.
+- Una categoría con productos asociados no se puede eliminar.
+- Solo se aceptan correos `@duoc.cl`, `@profesor.duoc.cl` o `@gmail.com`.
+- La contraseña tiene entre 4 y 10 caracteres y al menos una mayúscula.
+- Reseñas: solo con sesión iniciada, de 1 a 5 estrellas y un comentario de 10 a
+  300 caracteres; una por usuario y producto. El autor puede borrar la suya y el
+  Administrador puede moderar todas.
+
+## 6. Frontend (React)
+
+### 6.1 Organización del proyecto
 
 ```
 src/
+├── api/              Configuración de Axios (URL base, token e interceptores)
 ├── tipos.ts          Interfaces y tipos compartidos
-├── datos/            Datos iniciales (productos, categorías, regiones, cuentas,
-│                     resúmenes, preguntas frecuentes, textos legales)
-├── servicios/        Lectura y escritura en LocalStorage
+├── datos/            Textos y datos estáticos del sitio (resúmenes, preguntas
+│                     frecuentes, regiones, textos legales)
+├── servicios/        Llamadas a la API REST, una por módulo
 ├── contexto/         Estado global: SesionContexto y CarritoContexto
-├── hooks/            useFormulario (formularios + validación), useSesion y useCarrito
+├── hooks/            useFormulario, useSesion, useCarrito, useCategoriasServicio
 ├── componentes/      Componentes reutilizables
 ├── paginas/          Una página por ruta de la tienda
 │   └── admin/        Páginas del panel de administración
@@ -53,16 +179,12 @@ src/
 └── estilos/          CSS propio por sección, aplicado sobre Bootstrap
 ```
 
-Los archivos de `componentes/` y `contexto/` exportan solo componentes; las
-funciones y hooks compartidos (`claseCampo`, `tieneComunas`, `useSesion`,
-`useCarrito`) viven en `utils/` y `hooks/`. Así funciona el Fast Refresh de
-Vite y el linter queda sin avisos.
-
 Separamos las responsabilidades en capas. Las **páginas** arman la vista. Los
 **componentes** son piezas que se repiten. Los **servicios** son el único lugar
-que conoce LocalStorage. Las **utilidades** son funciones puras que se pueden
-probar sin interfaz. Así, cambiar la forma de guardar los datos (por ejemplo,
-pasar a una API) solo afectaría a `servicios/`.
+que conoce la API. Las **utilidades** son funciones puras que se pueden probar
+sin interfaz. Gracias a esta separación, pasar de LocalStorage a la API solo
+exigió cambiar la carpeta `servicios/`, tal como lo habíamos previsto en la
+etapa anterior.
 
 Usamos Atomic Design como guía, sin una taxonomía rígida:
 
@@ -71,168 +193,149 @@ Usamos Atomic Design como guía, sin una taxonomía rígida:
 - **Bloques compuestos:** `TarjetaProducto`, `TarjetaDestacada`,
   `TarjetaServicio`, `BannerPagina`, `SelectsRegionComuna`, `AlertaStockCritico`,
   `ResumenProducto`, `ResenasProducto`, `HorarioAtencion`,
-  `PreguntasFrecuentes`, `DatosClinica` (`ListaContacto` y `MapaClinica`),
-  `EncabezadoPanel`.
+  `PreguntasFrecuentes`, `DatosClinica`, `EncabezadoPanel`.
 - **Estructuras de página:** `Encabezado`, `PiePagina`, `DocumentoLegal` y las
   plantillas `Plantilla` (tienda) y `PlantillaAdmin` (panel), que reciben las
   páginas a través de `<Outlet />` de React Router.
 
-## 4. Reutilización, props y TypeScript
+### 6.2 Reutilización, props y TypeScript
 
 - **Componentes reutilizados:**
   - `TarjetaProducto` recibe un `producto: Producto` por props y se usa en todo
     el catálogo.
-  - `BannerPagina` cambia su imagen y textos según sus props (`variante`,
-    `titulo`, `texto`) y se reutiliza en Consultas, Productos, Contacto y Agendar.
+  - `BannerPagina` cambia su imagen y textos según sus props y se reutiliza en
+    Consultas, Productos, Contacto y Agendar.
   - `ErrorCampo` y `SelectsRegionComuna` se comparten entre Registro, Perfil y
     el formulario de usuarios del panel.
   - `DocumentoLegal` arma las páginas de Términos y condiciones y de Política
-    de privacidad: cada una solo le entrega por props su título, sus secciones
-    y el enlace al otro documento.
-  - `Estrellas` muestra una puntuación (con medias estrellas) junto al título
-    del producto, en el resumen de reseñas y en cada reseña.
+    de privacidad a partir de sus props.
   - `BotonEliminar` (con confirmación) se usa en productos, usuarios,
     categorías y reseñas.
-  - `EncabezadoPanel` es el título común de todas las páginas del panel
-    (etiqueta + título + acciones como `children`).
-  - `ListaContacto` y `MapaClinica` muestran la dirección, el teléfono y el
-    mapa en Contacto y Quiénes somos.
-- **Datos en un solo lugar:** la constante `CLINICA` (`datos/sitio.ts`) guarda
-  nombre, dirección, teléfono, correo y mapa; el pie, la agenda, las preguntas
-  frecuentes y los textos legales la leen en vez de repetir los valores. Los
-  roles están solo en `ROLES` (`utils/roles.ts`).
-- **Sin código repetido:** revisamos el proyecto con herramientas de análisis
-  (knip para código sin uso, jscpd para duplicados) y eliminamos las reglas CSS
-  que se pisaban entre sí. El código duplicado restante es menor al 1 %.
+  - `EncabezadoPanel` es el título común de todas las páginas del panel.
 - **Formularios sin duplicación:** el hook `useFormulario<T>` es genérico. Cada
-  formulario le entrega sus valores iniciales y un objeto de reglas tipado
-  (`Reglas<T>`). Las reglas de usuario (`crearReglasUsuario`) son las mismas
-  para el registro, el perfil y el panel.
+  formulario le entrega sus valores iniciales y un objeto de reglas tipado. Las
+  reglas de usuario son las mismas para el registro, el perfil y el panel.
 - **Un mismo formulario en tres modos:** `AdminProductoForm` y
-  `AdminUsuarioForm` se usan para crear, editar y ver el detalle. La prop
+  `AdminUsuarioForm` sirven para crear, editar y ver el detalle; la prop
   `soloLectura` y la ruta deciden el modo.
 - **TypeScript:**
   - Las interfaces de `tipos.ts` describen los datos (`Producto`, `Categoria`,
-    `Perfil`, `Sesion`, `Orden`, `Cita`, `Resena`). Los datos del sitio
-    también están tipados (`RedSocial`, `MedioPago`, `BloqueHorario`,
-    `SeccionTerminos`, `PreguntaFrecuente`, `ResumenProducto`).
+    `Perfil`, `Sesion`, `Orden`, `Cita`, `Resena`).
   - `Rol` es una unión de literales (`"Administrador" | "Vendedor" | "Cliente"`),
     de modo que un rol mal escrito es un error de compilación.
-  - Los contextos exponen interfaces (`ValorCarrito`, `ValorSesion`) y todas
-    las props están tipadas.
-  - No usamos `any`, y `npm run build` revisa los tipos antes de compilar.
+  - Los contextos exponen interfaces y todas las props están tipadas.
+  - `npm run build` revisa los tipos antes de compilar.
 
-## 5. Estado, eventos y renderizado dinámico
+### 6.3 Estado, eventos y renderizado dinámico
 
-- **Estado local (`useState`):**
-  - Los filtros de categoría y precio del catálogo.
-  - La categoría que se está editando.
-  - El detalle de la orden seleccionada.
-  - Los mensajes de los formularios.
-  - La pregunta frecuente abierta y el tema elegido.
-  - El resumen desplegable de cada servicio ("Ver qué incluye").
-  - Las reseñas del producto. Este estado está "levantado" a la ficha del
-    producto, porque lo usan el promedio junto al título y la sección de
-    reseñas, que lo actualiza al publicar o eliminar.
-- **Estado global (Context API):**
-  - `SesionContexto` guarda el usuario conectado.
-  - `CarritoContexto` guarda los ítems, el cupón y los totales. Al agregar un
-    producto desde una tarjeta, el contador de la cabecera se actualiza al
-    instante.
-- **Listas y filtros:**
-  - El catálogo se dibuja con `filter()` y `map()` combinando categoría y rango
-    de precio.
-  - Las tablas del panel usan `map()` con `key` (código del producto, correo
-    del usuario, número de la orden).
-  - Las reseñas se filtran por número de estrellas y su promedio se calcula
-    con `reduce()`. Las preguntas frecuentes se filtran por tema.
-- **Renderizado condicional:**
-  - Los botones y menús cambian según el rol.
-  - La alerta de stock crítico aparece cuando corresponde.
-  - Hay mensajes para listas vacías y para errores de validación.
+- **Estado local (`useState`):** filtros del catálogo, mensajes de los
+  formularios, la orden seleccionada, la pregunta frecuente abierta y las
+  reseñas del producto (levantadas a la ficha del producto).
+- **Estado global (Context API):** `SesionContexto` guarda el usuario conectado y
+  `CarritoContexto` guarda los ítems, el cupón y los totales.
+- **Listas y filtros:** el catálogo se dibuja con `filter()` y `map()`
+  combinando categoría y rango de precio; las tablas del panel usan `map()` con
+  `key`; el promedio de las reseñas se calcula con `reduce()`.
+- **Renderizado condicional:** los botones y menús cambian según el rol, y hay
+  mensajes de carga, de lista vacía y de error.
 
-## 6. Roles y reglas de negocio
+## 7. Integración frontend–backend
 
-| Rol | Puede |
-|---|---|
-| **Administrador** | CRUD de usuarios (asignando cualquier rol), productos y categorías; gestionar órdenes y citas. |
-| **Vendedor** | Consultar productos y modificar solo su stock; ver órdenes; consultar usuarios y crear usuarios **solo con rol Cliente**. No administra categorías ni elimina productos. |
-| **Cliente** | Usar la tienda: comprar, agendar, contactar. |
+- **Axios:** `api/axiosConfig.ts` define la URL base de la API y un
+  **interceptor de solicitud** que agrega el encabezado
+  `Authorization: Bearer <token>` cuando hay sesión.
+- **Interceptor de respuesta:** si la API responde 401 con una sesión abierta
+  (token vencido o inválido), se limpia la sesión y se envía al usuario a
+  `/login`. El 401 del propio login no cuenta.
+- **Servicios:** cada módulo tiene su archivo en `servicios/` (`auth`, `boleta`,
+  `catalogo`, `categorias`, `citas`, `resenas`, `reportes`, `servicios`,
+  `usuarios`). Los componentes nunca llaman a Axios directamente.
+- **Errores de comunicación:** los mensajes de error del backend (campo
+  `mensaje`) se muestran al usuario; si el servidor no responde, se muestra un
+  mensaje por defecto.
+- **Actualización de la interfaz:** después de crear, editar o eliminar, la
+  pantalla vuelve a pedir los datos a la API y se redibuja.
+- **Qué queda en LocalStorage:** solo el token JWT, los datos de la sesión, y el
+  carrito y el cupón en curso (todavía no son una compra). Usuarios, productos,
+  categorías, servicios, compras, citas, mensajes y reseñas se guardan
+  únicamente en la base de datos.
 
-Los tres roles pueden navegar, comprar y editar su perfil. El registro público
-crea únicamente clientes.
+## 8. Sesión y protección de rutas
 
-Las restricciones se aplican en tres niveles:
+- **Sesión:** `SesionContexto` mantiene el usuario autenticado y sus permisos.
+  Al recargar la página, la sesión se recupera solo si el token existe y no ha
+  vencido.
+- **Renovación:** el frontend renueva el token automáticamente cuando ha pasado
+  el 80 % de su vigencia.
+- **Cierre de sesión:** borra el token y el estado de autenticación.
+- **Rutas protegidas:** `PlantillaAdmin` redirige a `/login` si no hay sesión o
+  si el rol es Cliente, aunque la URL se escriba a mano. Las páginas privadas
+  de la tienda (`/perfil`, `/mis-compras`) también redirigen.
+- **Interfaz según el rol:** el menú y los botones muestran solo lo que el rol
+  puede usar.
+- **El backend valida siempre los permisos**, de modo que ocultar un botón en
+  el frontend nunca es la única barrera.
 
-1. **Rutas:** `PlantillaAdmin` redirige si el rol no tiene permiso para la URL,
-   aunque se escriba a mano.
-2. **Interfaz:** cada rol solo ve los botones y opciones que puede usar.
-3. **Guardado:** la función `rolesAsignables()` vuelve a comprobar el rol antes
-   de crear un usuario, y el formulario del vendedor guarda únicamente el stock.
+## 9. Panel de administración, historial y reportes
 
-Reglas de negocio conservadas de la primera evaluación:
+- **Panel:** el Administrador gestiona usuarios (con cualquier rol), productos,
+  categorías, órdenes y citas. Todo se guarda en la base de datos.
+- **Historial del cliente:** "Mis compras" y el perfil muestran las compras y
+  citas del usuario autenticado, con identificador, fecha, estado y total. Se
+  consultan al backend, por lo que se conservan al cerrar sesión o cambiar de
+  dispositivo.
+- **Dashboard:** `/admin` muestra la cantidad de operaciones, el monto vendido,
+  las unidades vendidas, las citas y los 5 productos más vendidos, con filtro
+  por semana, mes o año. Los indicadores se calculan con datos reales de la
+  base de datos.
 
-- No se puede comprar más unidades que el stock disponible.
-- Al pagar se descuenta el stock y se registra una orden.
-- El cupón `NUTRI10` aplica un 10% de descuento.
-- Se avisa cuando un producto llega a su stock crítico.
-- La cuenta se bloquea tras 3 intentos fallidos de inicio de sesión.
-- Solo se aceptan correos `@duoc.cl`, `@profesor.duoc.cl` o `@gmail.com`.
-- La contraseña debe tener entre 4 y 10 caracteres.
-- Validación de RUN y teléfono, con región y comuna dependientes.
-
-Al renombrar una categoría, sus productos se actualizan. Una categoría con
-productos asociados no se puede eliminar.
-
-El **perfil personal** muestra:
-
-- Nombre completo y avatar genérico con las iniciales.
-- Fecha de nacimiento y la edad calculada a partir de ella.
-- Correo, dirección y región.
-- El rol, como campo bloqueado: no se puede cambiar. En el panel, nadie puede
-  cambiar el rol de su propia cuenta.
-
-Funcionalidades agregadas sobre la tienda original:
-
-- **Reseñas de productos:** solo con sesión iniciada, de 1 a 5 estrellas y un
-  comentario de 10 a 300 caracteres. Hay una reseña por usuario y producto (al
-  volver se edita), el autor puede borrar la suya y el Administrador modera
-  todas.
-- **Resumen de productos y servicios:** cada producto muestra para qué sirve,
-  sus indicaciones y recomendaciones según su categoría. Cada servicio tiene un
-  resumen desplegable con lo que incluye.
-- **Códigos automáticos:** al crear un producto o una categoría, el código
-  siguiente (`ME023`, `CAT10`…) se asigna solo y no se puede repetir.
-- **Horario 24/7 y urgencias**, **preguntas frecuentes** en el Inicio,
-  **redes sociales** y **medios de pago** en el pie de página.
-- **Términos y condiciones y Política de privacidad**, enlazados desde el pie,
-  el registro y Quiénes somos.
-
-## 7. Bootstrap 5 y diseño responsivo
+## 10. Bootstrap 5 y diseño responsivo
 
 - Bootstrap se importa en `main.tsx` antes de nuestros estilos, para que el CSS
-  propio ajuste la identidad visual de la clínica sin perder las utilidades de
-  Bootstrap.
-- **Navegación:** la cabecera usa `navbar navbar-expand-xl`. En pantallas
-  pequeñas el menú se pliega, y lo abre y cierra un estado de React, sin el
-  JavaScript de Bootstrap.
-- **Panel:** usa la grilla `container-fluid` / `row`.
-  - En móvil, el menú lateral ocupa todo el ancho arriba (`col-12`).
-  - Desde tablet pasa a una columna lateral (`col-md-3`, `col-xl-2`).
-- **Perfil y formularios:** usan `row g-3`, `col-md-6` y las clases
-  `form-control` y `form-select`.
-- **Tablas:** van dentro de `table-responsive` para no desbordar en celulares.
-- **Mensajes:** se muestran con `alert` y `badge`.
-- **Íconos:** usamos Bootstrap Icons (`bi bi-…`) para las redes sociales, los
-  medios de pago, el horario, las reseñas y las secciones de formularios.
-- **Verificación:** revisamos las 24 rutas del sitio en anchos de celular
+  propio ajuste la identidad visual de la clínica sin perder las utilidades.
+- **Navegación:** la cabecera usa `navbar navbar-expand-xl`; en pantallas
+  pequeñas el menú se pliega y lo controla un estado de React.
+- **Panel:** usa la grilla `container-fluid` / `row`; en móvil el menú lateral
+  ocupa todo el ancho y desde tablet pasa a una columna lateral.
+- **Formularios y tablas:** `row g-3`, `col-md-6`, `form-control` y
+  `form-select`; las tablas van dentro de `table-responsive`.
+- **Mensajes e íconos:** `alert` y `badge` para los avisos, y Bootstrap Icons
+  para redes sociales, medios de pago, horario y reseñas.
+- **Verificación:** revisamos las rutas del sitio en anchos de celular
   (390 px), tablet (768 px) y computador (1366 px) sin desbordes horizontales.
 
-## 8. Alcance y limitaciones
+## 11. Cómo ejecutar el proyecto
 
-Es una simulación académica exclusivamente frontend. Las credenciales y el
-control de roles viven en LocalStorage del navegador, así que no constituyen un
-sistema de seguridad real. En un sistema productivo, la autenticación y la
-validación de permisos deberían hacerse en un backend (por ejemplo, un
-microservicio con Spring Boot y JWT). Nuestra separación por capas en
-`servicios/` facilita ese cambio.
+1. Encender MySQL y crear la base vacía:
+   `CREATE DATABASE nutrivifs CHARACTER SET utf8mb4;`
+2. Revisar `src/main/resources/application.properties` en el backend (usuario y
+   contraseña de MySQL) y ejecutar `NutrivifsApplication` o `./mvnw spring-boot:run`.
+3. En el frontend: `npm install` y `npm run dev` (`http://localhost:5173`).
+4. Swagger: `http://localhost:8080/swagger-ui.html`.
+
+Cuentas de demostración (las crea el backend al iniciar por primera vez):
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrador | admin@duoc.cl | Admin123 |
+| Vendedor | vendedor@duoc.cl | Vende123 |
+| Cliente | cliente@gmail.com | Cliente1 |
+
+## 12. Pruebas de integración
+
+Probamos la API en Swagger (CRUD, inicio de sesión, acceso con distintos roles y
+sin token) y la aplicación web (persistencia de sesión, rutas protegidas,
+compra e historial, privacidad entre usuarios, dashboard, expiración del token y
+persistencia tras reiniciar el backend). Los casos, los resultados y las
+capturas están en [docs/PRUEBAS_INTEGRACION.md](docs/PRUEBAS_INTEGRACION.md).
+
+## 13. Alcance y limitaciones
+
+- Es un proyecto académico: el backend corre en `localhost` y la configuración
+  de CORS y de base de datos está pensada para desarrollo.
+- El token JWT se guarda en `localStorage`, lo que es suficiente para esta
+  evaluación; en producción convendría usar cookies `HttpOnly` y HTTPS.
+- La clave JWT incluida por defecto en el repositorio es solo de desarrollo; en
+  un despliegue real se define con la variable `JWT_SECRET`.
+- Las imágenes subidas por el Administrador se guardan en la carpeta `uploads`
+  del servidor, no en un servicio de almacenamiento externo.

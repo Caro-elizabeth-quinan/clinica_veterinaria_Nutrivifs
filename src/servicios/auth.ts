@@ -27,3 +27,20 @@ export async function registrarApi(datos: {
 export function cerrarSesionApi(): void {
   localStorage.removeItem("token");
 }
+
+// Lee la fecha de vencimiento (en milisegundos) del campo "exp" del JWT
+export function expiracionToken(token: string): number | null {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+// POST /api/v1/auth/refresh: entrega un token nuevo mientras el actual siga vigente
+export async function renovarTokenApi(): Promise<void> {
+  const respuesta = await api.post("/auth/refresh");
+  localStorage.setItem("token", respuesta.data.token);
+}
